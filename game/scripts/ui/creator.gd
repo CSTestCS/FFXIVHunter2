@@ -37,8 +37,7 @@ func _ready() -> void:
 	var layer := CanvasLayer.new(); add_child(layer)
 	var ui := Control.new(); ui.set_anchors_preset(Control.PRESET_FULL_RECT); ui.theme = UI.theme(); layer.add_child(ui)
 	var left := UI.vbox(8)
-	left.position = Vector2(24, 20)
-	ui.add_child(left)
+	UI.fit(ui, left, Vector2(0.0, 0.0), Vector4(24, 20, 16, 120))
 	head = UI.label("", 28, UI.GOLD)
 	left.add_child(head)
 	var toggle := UI.hbox(8)
@@ -46,19 +45,17 @@ func _ready() -> void:
 	toggle.add_child(UI.button("Edit: The Warrior of Light", func(): editing_wol = true; _refresh_all(), 300))
 	left.add_child(toggle)
 	tabs = TabContainer.new()
-	tabs.custom_minimum_size = Vector2(700, 690)
+	tabs.custom_minimum_size = Vector2(700, 640)
 	left.add_child(tabs)
 	var bottom := UI.hbox(10)
-	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	bottom.offset_left = -760; bottom.offset_top = -80; bottom.offset_right = -30; bottom.offset_bottom = -24
 	bottom.add_child(UI.button("Rotate", func(): yaw += PI * 0.25, 120))
 	bottom.add_child(UI.button("Face / Body", func(): face_cam = not face_cam, 160))
 	bottom.add_child(UI.button("Back to Title", func(): get_tree().change_scene_to_file("res://scenes/main.tscn"), 180))
 	bottom.add_child(UI.button("Begin Adventure", _begin, 220))
-	ui.add_child(bottom)
 	var hint := UI.label("Right stick / mouse wheel: rotate preview.   LB/RB or Z/X: switch tabs.", 15, UI.DIM)
-	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT); hint.offset_left = -760; hint.offset_top = -110; hint.offset_right = -30
-	ui.add_child(hint)
+	var br := UI.vbox(6)
+	br.add_child(hint); br.add_child(bottom)
+	UI.fit(ui, br, Vector2(1.0, 1.0), Vector4(16, 16, 30, 24))
 	_refresh_all()
 	Sfx.music("title")
 
@@ -134,7 +131,8 @@ func _refresh_all() -> void:
 func _refresh_tabs() -> void:
 	head.text = "Creating: " + ("the Warrior of Light (NPC)" if editing_wol else "Your Adventurer")
 	_last_tab = tabs.current_tab
-	for c in tabs.get_children(): c.queue_free()
+	for c in tabs.get_children():
+		tabs.remove_child(c); c.queue_free()
 	var a := cur()
 	# ---- Race
 	var rv := _page("Race")
@@ -227,7 +225,7 @@ func _refresh_tabs() -> void:
 
 func _page(n: String) -> VBoxContainer:
 	var v := UI.vbox(8)
-	var sc := UI.scroll(v, Vector2(680, 620))
+	var sc := UI.scroll(v, Vector2(680, 580))
 	sc.name = n
 	tabs.add_child(sc)
 	return v

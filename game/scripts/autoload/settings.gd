@@ -51,6 +51,7 @@ func apply() -> void:
 		gfx["aa"] = 0
 	if not DisplayServer.get_name() == "headless":
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if v["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
+		if not v["fullscreen"]: _fit_window()
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if v["vsync"] else DisplayServer.VSYNC_DISABLED)
 	Engine.max_fps = int(v["fps_cap"])
 	var vp := get_viewport()
@@ -80,3 +81,17 @@ func apply_env(env: Environment, sun: DirectionalLight3D) -> void:
 		sun.shadow_enabled = true
 		sun.directional_shadow_max_distance = [50.0, 80.0, 120.0, 180.0][gfx["shadows"]]
 		sun.directional_shadow_mode = [DirectionalLight3D.SHADOW_ORTHOGONAL, DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS, DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS, DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS][gfx["shadows"]]
+
+
+## Keeps a windowed game inside the monitor's usable area (taskbar excluded), preserving 16:9.
+func _fit_window() -> void:
+	var scr := DisplayServer.window_get_current_screen()
+	var usable := DisplayServer.screen_get_usable_rect(scr)
+	if usable.size.x <= 0 or usable.size.y <= 0: return
+	var deco := DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+	var avail := usable.size - deco
+	var want := Vector2i(1600, 900)
+	var s := minf(1.0, minf(float(avail.x) / want.x, float(avail.y) / want.y) * 0.95)
+	var sz := Vector2i(int(want.x * s), int(want.y * s))
+	DisplayServer.window_set_size(sz)
+	DisplayServer.window_set_position(usable.position + (usable.size - sz - deco) / 2)

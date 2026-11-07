@@ -15,10 +15,10 @@ func setup(w: Node) -> void:
 	world = w
 	layer = 9
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	panel = UI.panel(Vector2(760, 560))
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.offset_left = -380; panel.offset_right = 380; panel.offset_top = -300; panel.offset_bottom = 300
-	add_child(panel)
+	panel = UI.panel(Vector2(760, 0))
+	var r := UI.screen_root()
+	add_child(r)
+	UI.fit(r, panel, Vector2(0.5, 0.5))
 	var v := UI.vbox(10)
 	panel.add_child(v)
 	title = UI.label("", 28, UI.GOLD)

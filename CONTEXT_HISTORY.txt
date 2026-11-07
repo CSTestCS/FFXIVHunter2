@@ -289,3 +289,38 @@ Verification:
 - Linux build on 4.5.1: all 19 jobs, all 20 missions and all 12 cutscenes pass the automated
   suites; a rendered playthrough on the OpenGL renderer (city, field, combat, swimming, menu)
   works.
+
+---------------------------------------------------------
+8. ROUND 3: UI EXTENDING OFF-SCREEN
+---------------------------------------------------------
+User message (verbatim):
+"UI elements are extending offscreen. Ensure all UI elements are locked to the bounds of the screen"
+
+Causes found:
+- Panels were placed with fixed pixel offsets and grew with their content; nothing stopped them
+  growing past the screen edge. The title-screen settings list was taller than the screen, and
+  long rows (save-slot summaries, smithy/market entries) could widen panels.
+- In windowed mode the 1600x900 window could be larger than a small or DPI-scaled monitor.
+
+Changes:
+- New UI.FitBox container: every screen's panels are laid out at their natural size inside the
+  screen margins and scaled down uniformly whenever they would not fit, so they can never cross
+  the screen edge. Applied to the HUD (bars and hotbar, party list, zone/objective tracker,
+  compass, boss bar, prompt, toasts, banner, gil line), dialogue window, cutscene titles and
+  skip hint, town service windows, pause menu, title screen (menu, slot lists, settings,
+  disclaimer) and character creator (editor panel and bottom buttons).
+- The title-screen settings list now scrolls inside its panel.
+- Long button labels shorten with "..." (full text in the tooltip) instead of widening panels;
+  save-slot summaries clip; the quest objective text wraps.
+- Windowed mode now sizes and centres the window inside the monitor's usable area (taskbar
+  excluded), keeping 16:9.
+- Fixed creator and pause-menu tabs being renamed to internal names (e.g. "@ScrollContainer@300")
+  after a rebuild, because old tabs were still present when new ones were added.
+
+Verification:
+- New automated check opens 49 screens (title menus, every creator tab for both characters, HUD
+  with long toasts/banner/objective, every pause-menu tab, every town service, dialogue) and
+  measures every visible UI element's on-screen rectangle. Zero elements cross the screen edge at
+  1600x900, 1280x720, 1024x768 (4:3) and 2560x1080 (ultrawide). The same check on the previous
+  layout flagged the overflowing settings list, confirming it detects the problem.
+- Windows exe boots to the title screen under Wine with no errors; zip rebuilt (43 MB).

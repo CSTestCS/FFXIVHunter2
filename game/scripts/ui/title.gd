@@ -23,12 +23,10 @@ func _ready() -> void:
 	var sub := UI.label("Echoes of an Adventurer", 30, UI.TEXT)
 	sub.position = Vector2(76, 180); ui.add_child(sub)
 	var note := UI.label("An unofficial fan game set in the world of FINAL FANTASY XIV, after Endwalker.\nFINAL FANTASY is a registered trademark of Square Enix. Not affiliated with or endorsed by Square Enix.", 14, UI.DIM)
-	note.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT); note.offset_left = 24; note.offset_top = -60; note.offset_right = 1200
-	ui.add_child(note)
+	UI.fit(ui, note, Vector2(0.0, 1.0), Vector4(24, 16, 16, 12))
 	menu_box = UI.vbox(10)
-	menu_box.position = Vector2(80, 280)
 	menu_box.custom_minimum_size = Vector2(480, 0)
-	ui.add_child(menu_box)
+	UI.fit(ui, menu_box, Vector2(0.0, 0.0), Vector4(80, 270, 16, 80))
 	_main_menu()
 	Sfx.music("title")
 
@@ -131,10 +129,12 @@ func _load_slots() -> void:
 func _settings() -> void:
 	_clear()
 	var p := UI.panel(Vector2(760, 0))
+	var outer := UI.vbox(6)
+	p.add_child(outer)
 	var v := UI.vbox(6)
-	p.add_child(v)
+	outer.add_child(UI.scroll(v, Vector2(720, 470)))
 	GameMenu.SettingsUI.build(v)
-	v.add_child(UI.button("Back", _main_menu, 300))
+	outer.add_child(UI.button("Back", _main_menu, 300))
 	menu_box.add_child(p)
 	UI.focus_first(menu_box)
 

@@ -68,6 +68,11 @@ static func button(text: String, cb: Callable, min_w := 0.0) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size.x = min_w
+	if min_w <= 0.0 and text.length() > 28:
+		# Long labels shrink with "..." instead of widening the whole panel off-screen.
+		b.clip_text = true
+		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		b.tooltip_text = text
 	b.pressed.connect(func(): Sfx.play("ui_ok", -6.0); cb.call())
 	b.focus_entered.connect(func(): Sfx.play("ui_move", -14.0))
 	return b
@@ -172,3 +177,47 @@ static func _find_focusable(n: Node) -> Control:
 			var r := _find_focusable(c)
 			if r: return r
 	return null
+
+
+## Keeps a panel inside the visible screen: the child is laid out at its natural size, placed by
+## `align` (0..1 on each axis) inside the margins, and scaled down uniformly if it would not fit.
+class FitBox extends Container:
+	var align := Vector2(0.5, 0.5)
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _get_minimum_size() -> Vector2:
+		return Vector2.ZERO
+
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_SORT_CHILDREN or what == NOTIFICATION_RESIZED:
+			for c in get_children():
+				if not (c is Control) or not c.visible: continue
+				var need: Vector2 = c.get_combined_minimum_size()
+				need = need.max(Vector2.ONE)
+				var s := minf(1.0, minf(size.x / need.x, size.y / need.y))
+				c.size = need
+				c.scale = Vector2(s, s)
+				c.position = ((size - need * s) * align).floor()
+
+
+## Wraps `child` in a FitBox filling `parent` minus margins (left, top, right, bottom).
+static func fit(parent: Control, child: Control, align: Vector2, margins := Vector4(16, 16, 16, 16)) -> Container:
+	var f := FitBox.new()
+	f.align = align
+	f.set_anchors_preset(Control.PRESET_FULL_RECT)
+	f.offset_left = margins.x; f.offset_top = margins.y
+	f.offset_right = -margins.z; f.offset_bottom = -margins.w
+	parent.add_child(f)
+	f.add_child(child)
+	return f
+
+
+## A full-screen Control that ignores the mouse, for building screen-fitted layers.
+static func screen_root() -> Control:
+	var r := Control.new()
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.theme = theme()
+	return r

@@ -26,17 +26,18 @@ func setup(w: Node) -> void:
 	_layer = CanvasLayer.new(); _layer.layer = 7; add_child(_layer)
 	_flash = ColorRect.new(); _flash.set_anchors_preset(Control.PRESET_FULL_RECT); _flash.color = Color(1, 1, 1, 0); _flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_flash)
+	var r := UI.screen_root()
+	_layer.add_child(r)
+	var tv := UI.vbox(10)
+	tv.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title = UI.label("", 72, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
-	_title.set_anchors_and_offsets_preset(Control.PRESET_CENTER); _title.offset_left = -800; _title.offset_right = 800; _title.offset_top = -80
 	_title.modulate.a = 0.0
-	_layer.add_child(_title)
 	_title_sub = UI.label("", 26, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
-	_title_sub.set_anchors_and_offsets_preset(Control.PRESET_CENTER); _title_sub.offset_left = -800; _title_sub.offset_right = 800; _title_sub.offset_top = 10
 	_title_sub.modulate.a = 0.0
-	_layer.add_child(_title_sub)
+	tv.add_child(_title); tv.add_child(_title_sub)
+	UI.fit(r, tv, Vector2(0.5, 0.45), Vector4(24, 100, 24, 100))
 	_skip_hint = UI.label("", 15, UI.DIM, HORIZONTAL_ALIGNMENT_RIGHT)
-	_skip_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT); _skip_hint.offset_left = -400; _skip_hint.offset_right = -20; _skip_hint.offset_top = 100
-	_layer.add_child(_skip_hint)
+	UI.fit(r, _skip_hint, Vector2(1.0, 0.0), Vector4(16, 100, 20, 16))
 
 
 func play(id: String) -> void:

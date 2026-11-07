@@ -53,10 +53,9 @@ func setup(w: Node) -> void:
 	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE; root.add_child(vignette)
 	# --- player bars (bottom centre)
 	var pb := UI.vbox(4)
-	pb.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	pb.offset_left = -300; pb.offset_right = 300; pb.offset_top = -190; pb.offset_bottom = -20
 	pb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(pb)
+	pb.custom_minimum_size.x = 600
+	UI.fit(root, pb, Vector2(0.5, 1.0), Vector4(16, 16, 16, 20))
 	move_lbl = UI.label("", 26, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
 	pb.add_child(move_lbl)
 	var bars := UI.hbox(10)
@@ -91,58 +90,48 @@ func setup(w: Node) -> void:
 		hot.append({"panel": slot, "key": k, "name": n})
 	# --- party list (left)
 	party_box = UI.vbox(6)
-	party_box.position = Vector2(24, 300)
-	root.add_child(party_box)
-	# --- objective tracker (top-left)
+	UI.fit(root, party_box, Vector2(0.0, 0.45), Vector4(24, 16, 16, 16))
+	# --- zone name + objective tracker (top-left)
+	var tl := UI.vbox(2)
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	zone_lbl = UI.label("", 40, UI.TEXT)
-	zone_lbl.position = Vector2(40, 120)
-	root.add_child(zone_lbl)
 	zone_sub = UI.label("", 22, UI.GOLD)
-	zone_sub.position = Vector2(44, 170)
-	root.add_child(zone_sub)
 	obj_lbl = UI.label("", 19, UI.TEXT)
-	obj_lbl.position = Vector2(24, 210)
-	root.add_child(obj_lbl)
+	obj_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	obj_lbl.custom_minimum_size.x = 560
+	tl.add_child(zone_lbl); tl.add_child(zone_sub); tl.add_child(obj_lbl)
+	UI.fit(root, tl, Vector2(0.0, 0.0), Vector4(24, 110, 16, 16))
 	gil_lbl = UI.label("", 17, UI.GOLD)
-	gil_lbl.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	gil_lbl.offset_left = -300; gil_lbl.offset_top = -40; gil_lbl.offset_right = -24
 	gil_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	root.add_child(gil_lbl)
+	UI.fit(root, gil_lbl, Vector2(1.0, 1.0), Vector4(16, 16, 24, 14))
 	# --- compass (top centre)
 	compass = Control.new()
-	compass.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	compass.offset_left = -320; compass.offset_right = 320; compass.offset_top = 14; compass.offset_bottom = 46
+	compass.custom_minimum_size = Vector2(640, 32)
 	compass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	compass.draw.connect(_draw_compass)
-	root.add_child(compass)
+	UI.fit(root, compass, Vector2(0.5, 0.0), Vector4(16, 14, 16, 16))
 	# --- boss bar
 	boss_box = UI.vbox(2)
-	boss_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	boss_box.offset_left = -360; boss_box.offset_right = 360; boss_box.offset_top = 56
 	boss_name = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	boss_bar = UI.bar(Color(0.85, 0.2, 0.18), 720, 14)
 	boss_box.add_child(boss_name); boss_box.add_child(boss_bar)
 	boss_box.visible = false
-	root.add_child(boss_box)
+	UI.fit(root, boss_box, Vector2(0.5, 0.0), Vector4(16, 56, 16, 16))
 	# --- prompt, toasts, banner
 	prompt_lbl = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
-	prompt_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	prompt_lbl.offset_left = -300; prompt_lbl.offset_right = 300; prompt_lbl.offset_top = 90
-	root.add_child(prompt_lbl)
+	UI.fit(root, prompt_lbl, Vector2(0.5, 0.62))
 	toast_box = UI.vbox(4)
-	toast_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	toast_box.offset_left = -560; toast_box.offset_right = -24; toast_box.offset_top = 90
 	toast_box.alignment = BoxContainer.ALIGNMENT_BEGIN
-	root.add_child(toast_box)
+	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UI.fit(root, toast_box, Vector2(1.0, 0.0), Vector4(16, 90, 24, 200))
+	var bn := UI.vbox(4)
+	bn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bn.custom_minimum_size.x = 1100
 	banner_lbl = UI.label("", 64, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
-	banner_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	banner_lbl.offset_left = -700; banner_lbl.offset_right = 700; banner_lbl.offset_top = -160
-	root.add_child(banner_lbl)
 	banner_sub = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
-	banner_sub.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	banner_sub.offset_left = -700; banner_sub.offset_right = 700; banner_sub.offset_top = -80
 	banner_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(banner_sub)
+	bn.add_child(banner_lbl); bn.add_child(banner_sub)
+	UI.fit(root, bn, Vector2(0.5, 0.33))
 	reticle = UI.label("◆", 28, Color(1, 0.4, 0.3), HORIZONTAL_ALIGNMENT_CENTER)
 	reticle.visible = false
 	root.add_child(reticle)
@@ -295,7 +284,7 @@ func set_objective(t: String) -> void:
 func toast(t: String) -> void:
 	var l := UI.label(t, 19, UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size.x = 520
+	l.custom_minimum_size.x = 480
 	toast_box.add_child(l)
 	_toast_t.append([l, 4.5])
 	if _toast_t.size() > 6:

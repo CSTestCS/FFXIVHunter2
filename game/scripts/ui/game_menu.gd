@@ -19,9 +19,8 @@ func setup(w: Node) -> void:
 	var dim := ColorRect.new(); dim.color = Color(0, 0, 0, 0.55); dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(dim)
 	tabs = TabContainer.new()
-	tabs.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	tabs.offset_left = -560; tabs.offset_right = 560; tabs.offset_top = -340; tabs.offset_bottom = 340
-	root.add_child(tabs)
+	tabs.custom_minimum_size = Vector2(1120, 680)
+	UI.fit(root, tabs, Vector2(0.5, 0.5))
 	visible = false
 
 
@@ -68,7 +67,8 @@ func _page(name: String) -> VBoxContainer:
 
 
 func _rebuild() -> void:
-	for c in tabs.get_children(): c.queue_free()
+	for c in tabs.get_children():
+		tabs.remove_child(c); c.queue_free()
 	await get_tree().process_frame
 	var s := Game.state
 	var st := Game.stats()
@@ -146,7 +146,12 @@ func _rebuild() -> void:
 		row.add_child(UI.button("Load", func():
 			close(); Game.mission = {}; Game.load_game(idx), 90))
 		row.get_child(1).disabled = not SaveSystem.exists(idx)
-		row.add_child(UI.label(SaveSystem.summary(idx), 16, UI.TEXT))
+		var summ := UI.label(SaveSystem.summary(idx), 16, UI.TEXT)
+		summ.clip_text = true
+		summ.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		summ.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		summ.custom_minimum_size.x = 200
+		row.add_child(summ)
 		sv.add_child(row)
 	sv.add_child(UI.button("Return to game", close))
 	var qt := _page("Quit")

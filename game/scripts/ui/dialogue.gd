@@ -20,9 +20,9 @@ func _ready() -> void:
 	layer = 8
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	panel = UI.panel(Vector2(1000, 190))
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	panel.offset_left = -520; panel.offset_right = 520; panel.offset_top = -330; panel.offset_bottom = -120
-	add_child(panel)
+	var r := UI.screen_root()
+	add_child(r)
+	UI.fit(r, panel, Vector2(0.5, 1.0), Vector4(16, 16, 16, 110))
 	var v := UI.vbox(6)
 	panel.add_child(v)
 	name_lbl = UI.label("", 22, UI.GOLD)
