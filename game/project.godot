@@ -1,0 +1,70 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+
+config/name="Eorzea Hunter: Echoes of an Adventurer"
+config/description="A fan-made FFXIV / Monster Hunter / Elden Ring hybrid action RPG."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://assets/icon.svg"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="EorzeaHunter"
+boot_splash/bg_color=Color(0.02, 0.03, 0.06, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+Data="*res://scripts/autoload/data.gd"
+Settings="*res://scripts/autoload/settings.gd"
+Inputs="*res://scripts/autoload/inputs.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
+Game="*res://scripts/autoload/game.gd"
+Sfx="*res://scripts/autoload/sfx.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/vsync/vsync_mode=1
+
+[filesystem]
+
+import/blender/enabled=false
+import/fbx/enabled=false
+
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+
+[physics]
+
+common/physics_ticks_per_second=60
+3d/physics_engine="DEFAULT"
+common/max_physics_steps_per_frame=4
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=false
+textures/default_filters/anisotropic_filtering_level=3
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=2
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=1
+anti_aliasing/quality/screen_space_aa=1
+environment/defaults/default_clear_color=Color(0.05, 0.06, 0.09, 1)
+mesh_lod/lod_change/threshold_pixels=1.5
+occlusion_culling/use_occlusion_culling=false
+rendering_device/fallback_to_vulkan=true
+rendering_device/fallback_to_d3d12=true
+
+[debug]
+
+gdscript/warnings/inference_on_variant=0
+gdscript/warnings/unused_variable=0
+gdscript/warnings/shadowed_variable=0

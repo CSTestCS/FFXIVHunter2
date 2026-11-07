@@ -1,0 +1,255 @@
+EORZEA HUNTER: ECHOES OF AN ADVENTURER - CONTEXT HISTORY
+=========================================================
+This file logs the full context of how this project was requested and built: the user's
+messages (verbatim), the provided assets, every major decision, the work done in order,
+the tests run and their results, and the known limitations at the time of writing.
+
+---------------------------------------------------------
+1. USER REQUEST (verbatim)
+---------------------------------------------------------
+Attachments: HairstyleSamples.zip, HyurBases.zip, MiqoteBases.zip
+
+"Create a 3D game using VRoid characters. The game should be a .exe to allow for immediate
+play upon completion. The game will be a hybrid between Final Fantasy XIV and Monster Hunter,
+with some Elden Ring features included. Include in the repository a .txt file that has the
+entire context history logged inside. Design this game for maximum performance while keeping
+visuals and gameplay high quality. This means whenever a feature is changed then any unused
+scripts should be purged, when a feature is depreciated it should not leave behind unused
+scripts, and when a feature is added it should be designed to avoid heavy GPU or CPU use when
+possible. Lighting and materials should be realistic. Create the game with multiple save slots
+rather than simply assuming a single save. Provided is a .zip with the male and female Hyur and
+the male and female Miqo'te along with two hairstyle samples and clothing samples for each
+race/gender. The hairstyle samples are both on the female Hyur body, but simply remove that
+leaving only the hair, and attach it to whatever model is using it. Similarly the clothing
+samples have bodies, remove the bodies and isolate each clothing item for it's use.
+
+The gameplay starts with the player creating their adventurer with the same options as in
+FFXIV, this includes races, subraces, hairstyles, colors, everything. Add an option to this menu
+as well that allows the player to customize a second character, that being what the legendary
+Warrior of Light NPC will look like in game. Once the player creates their character(s) they
+may choose their starting job. Unlike FFXIV all jobs will be available to choose from at the
+start, and each job will play more like a weapon type in Monster Hunter or Elden Ring, as will
+player movement and controls. (include gamepad support for menus and gameplay) Once the player
+has finished with their character creation, the story begins with their adventurer outside
+whichever city is related to their job of choice.
+
+The story is set in Eorzea at the time of post Endwalker, after the Warrior of Light and the
+Scions of the Seventh Dawn have thwarted the final days and disbanded. (NOTE: This is a fan
+game, so it's important that the game stays true to the lore of FFXIV) The player's character
+is a mere adventurer who in the opening cutscene awakes to a concerned villager who found them
+naked, battered, and unconscious on the road to the city, likely robbed by bandits. The villager
+helps bring the player into the city where they are provided with something simple to wear and
+pointed to the local adventurers' guild to find help. The story will continue as the player
+plays, keeping them as a mere adventurer. Ensure the cities and regions are accurate recreations
+of the ones found in FFXIV. After the player's character has recovered from their wounds, the
+guild offers them work in the form of guildleves. The player may then explore the city, where
+they can talk to NPCs who have quests to offer. Quests and Guildleves will be similar, but will
+differ in rewards and quests will have story elements while Guildleves will just be activities
+without any story significance. Quests and Guildleves can be large monster hunts, small monster
+hunts, defense missions, resource gathering missions, and escort quests. Alternatively the
+player can choose to simply travel through the regions, which are all connected the same way
+they are in FFXIV and this will allow the player to find the other cities and regions.
+
+Before the player departs on a quest or guildleve, it is recommended they eat a meal which is
+comprised of three slots: The main dish, side, and drink. Each slot has it's own aspects of
+gameplay it will target, and each item they choose to fill those slots with will provide their
+own buffs or perks for the mission.
+
+Gameplay will be very much like Monster Hunter and Elden Ring, where the player will have a
+varied moveset unique to the weapon type they use, and enemies will have telegraphed but heavy
+hitting movesets of their own each unique to the individual monster or enemy. Unlike Monster
+Hunter or Elden Ring, however, swimming should be included as a feature. The combat must feature
+combos, do not make this cheap with just basic moves.
+
+As the player progresses they will earn gil and level up, allowing them to upgrade their
+weapons, armor, materia, pick up new jobs, and eventually build a party to join them on their
+missions.
+
+The story should be very dynamic and engaging, but should never push the player's character into
+too legendary of a status, they should always just be an adventurer. The story should, however,
+have plenty of cameos with the Scions of the Seventh Dawn and the legendary Warrior of Light.
+Always keeping them looking cool and powerful. Include many dynamic cutscenes."
+
+Follow-up message from the user during the asset-pipeline step (verbatim):
+"No skin culling"
+
+Interpretation applied: no body skin is culled, hidden or deleted underneath clothing. Every base
+keeps its full, intact body mesh (the unclothed base bodies from the "A" files are used), and
+clothing pieces are layered on top of it. No triangles of the body are removed at build time or
+hidden at runtime.
+
+---------------------------------------------------------
+2. PROVIDED ASSETS
+---------------------------------------------------------
+HyurBases.zip:     HyurFA.vrm, HyurMA.vrm (base bodies), HyurFSampleClothes.vrm, HyurMSampleClothes.vrm
+MiqoteBases.zip:   MiqoFA.vrm, MiqoMA.vrm (base bodies with cat ears and fox-style tail),
+                   MiqoFSampleClothes.vrm, MiqoMSampleClothes.vrm
+HairstyleSamples.zip: HairstyleSample.vrm, HairstyleSample2.vrm (hair on a female Hyur body)
+
+Findings from inspecting the VRM (VRM 1.0, VRoid) files:
+- Each file has a Face mesh (7 material primitives, 57 blend shapes) and a merged Body mesh whose
+  primitives are split by material: body skin, smallclothes ("Onepiece"), scalp hair layer
+  ("HairBack"), and in the sample files Tops, Bottoms, Shoes and a Baseball Cap; Miqo'te files
+  also contain CatEar and FoxTail. Hairstyle files add a separate Hair mesh.
+- All primitives of a merged mesh share one vertex buffer, so parts must be compacted.
+- Skeletons use the standard J_Bip humanoid bones plus secondary chains (J_Sec, J_Opt) for
+  spring bones. Rest pose is a T-pose, model faces +Z.
+- Materials are MToon (toon) with KHR_materials_unlit.
+
+---------------------------------------------------------
+3. TECHNOLOGY DECISIONS
+---------------------------------------------------------
+- Engine: Godot 4.3 stable, Forward+ renderer (Vulkan, with D3D12 fallback on Windows).
+  Chosen because it can export a Windows .exe from this Linux environment, imports glTF natively,
+  and has a fast native animation system. Export templates downloaded from GitHub releases.
+- Language: GDScript, everything built from code and data (very few scene files) so content is
+  data-driven and easy to extend.
+- Output: Build/EorzeaHunter.exe (84 MB engine) + Build/EorzeaHunter.pck (game data, ~30 MB).
+  The pack is kept separate so no single file exceeds GitHub's 100 MB limit.
+- Asset pipeline (tools/vrm_split.py, Python + numpy + Pillow):
+  * Base bodies: face + full body skin + smallclothes. Nothing under clothing is culled.
+  * Hairstyles: only the hair primitives (hair + its scalp layer) are kept; the sample body is
+    discarded. Hair is attached to whichever model uses it.
+  * Clothing: each item (tops, bottoms, shoes, cap) is isolated into its own file; the sample
+    body is discarded.
+  * Miqo'te ears and tail are separated so races can include or omit them.
+  * All parts are rebound to the standard humanoid bones (secondary-bone weights folded into the
+    nearest humanoid ancestor) so any part fits any base skeleton.
+  * Face blend shapes trimmed from 57 to the 8 used (neutral, angry, joy, sorrow, surprised,
+    blink, mouth A, mouth O).
+  * MToon replaced by physically based materials (roughness per surface type: skin, hair, eyes,
+    cloth); placeholder normal/emission maps removed; hair and iris textures stored as neutral
+    luminance so the creator's colour pickers drive the hue.
+  * Textures de-duplicated by content hash (31 unique), capped at 1024 px, imported as
+    GPU-compressed S3TC/BPTC with mipmaps.
+- Races not provided as bases (Elezen, Lalafell, Roegadyn, Au Ra, Hrothgar, Viera) are built from
+  the Hyur/Miqo'te bases with bone-scale profiles (height, torso width with counter-scaled
+  shoulders, head size), plus procedural pointed ears (Elezen/Lalafell), horns and a scaled tail
+  (Au Ra), stretched ears (Viera) and cat ears/tail (Miqo'te, Hrothgar).
+- Animations: VRoid models have none, so a procedural animation library (anim_lib.gd) authors
+  ~55 animations from limb poses (idle, walk, run, sprint, strafe, jump, fall, roll, backstep,
+  guard, hit, knockdown, death, lying, sitting up, kneeling, talking, waving, swimming, diving,
+  gathering, drinking, dashing, leaping, and ~30 attack/cast/shoot/dance/iaijutsu animations).
+  They are generated once per skeleton and played by AnimationPlayer.
+- Zone connections verified with web searches against FFXIV wiki pages (Mor Dhona borders
+  Coerthas Central Highlands and Northern Thanalan; Coerthas Central Highlands borders Foundation,
+  North Shroud and Mor Dhona; Eastern Thanalan borders South Shroud; La Noscea zone borders;
+  Western Thanalan's Vesper Bay ferry to Limsa Lominsa).
+- Job starting cities follow where each job's guild/quest begins in FFXIV:
+  Gridania: WHM, DRG, BRD, GNB.  Limsa Lominsa: WAR, SCH, SMN, NIN, DNC, SGE.
+  Ul'dah: PLD, MNK, BLM, SAM, RDM.  Ishgard (Foundation): DRK, AST, MCH, RPR.
+  Viper and Pictomancer were left out because they arrive in Dawntrail, after this story's setting.
+
+---------------------------------------------------------
+4. WORK LOG (chronological)
+---------------------------------------------------------
+ 1. Inspected repository (empty, branch claude/affectionate-ritchie-g7jiwu) and the three zips.
+ 2. Checked network access: only package registries and GitHub releases reachable. Downloaded
+    Godot 4.3 and its export templates; installed Mesa's software Vulkan (lavapipe) so the game
+    could be rendered and screenshotted in the sandbox for visual testing.
+ 3. Wrote a VRM inspector, studied mesh/material/skeleton layout, then wrote tools/vrm_split.py
+    and generated game/assets/characters (bases, hair_1, hair_2, hairback, ears, tails,
+    clothing items, 31 textures, 14 MB total). User message received: "No skin culling" -
+    confirmed the full body is kept beneath all clothing.
+ 4. Forced GPU texture compression + mipmaps on all imported textures.
+ 5. Data layer: races/clans/colours/deities (races.gd), 19 jobs with full movesets (jobs.gd),
+    equipment tiers, materia, materials, consumables, meals and recruits (items.gd), bestiary
+    with telegraphed attacks (monsters.gd), 21 zones and their links (zones.gd), cast, main
+    scenario, side quests, leve templates and 12 cutscenes (story.gd).
+ 6. Autoloads: Data, Settings (quality presets), Inputs (keyboard/mouse + gamepad bindings and
+    prompt glyphs), SaveSystem (8 slots, atomic writes), Game (state, progression, quests,
+    missions), Sfx (procedurally synthesised sounds and ambient music).
+ 7. Character system: CharModel (assembly, race shaping, colours, dyes, weapons, blink and lip
+    movement), AnimLib (procedural animations), WeaponBuilder (19 weapon types x 7 tiers).
+    First render test: arms pointed up; fixed the sign of the arm-down rotation. Fixed lunge leg
+    poses that looked like back-kicks.
+ 8. Combat core: Actor (HP, buffs, DoTs/HoTs, shields, guard and perfect guard, i-frames,
+    stagger, resistances), FX (pooled damage numbers, slashes, novas, beams, hitstop, camera
+    shake, ground telegraph decals that follow terrain), Projectile.
+ 9. Monsters: MonsterBuilder (procedural bodies: quadruped, biped, bird, plant, blob, insect,
+    cactuar, wyvern; humanoid bandits use VRoid bodies), Monster AI (threat, chase, wind-up with
+    markers, execution for circle/cone/line/donut/charge/leap/projectile/combo/self attacks,
+    enrage, part breaks, toppling, carving).
+10. Player: camera-relative movement, sprint, roll and backstep with i-frames, jump, guard and
+    perfect guard, lock-on, swimming/diving with breath, potions, combo graph with buffered
+    inputs, cancel windows, charge attacks, gauge costs/alternates, projectiles, novas, rain
+    attacks, Kardia, Sen/Iaijutsu, and 13 job-action kinds. Companion AI for party members.
+11. World: ZoneBuilder (heightmap terrain with roads, cliffs at zone edges, sea/lake water,
+    chunked MultiMesh vegetation, camps, aetherytes, signposts, zone gates), CityBuilder (four
+    cities from style kits with guild, kitchen, smithy, market, trainer, NPC placements,
+    landmarks such as the Lominsan Lighthouse, Stillglade Fane, the Coliseum and the Vault),
+    Batcher (geometry merging), Props, shaders (terrain, water, foliage), NPCs, MissionRunner
+    (five mission types with camp, supply box and three-faint limit), and the World controller
+    (environment and day/night, spawning, LOD, interactions, zone lines, teleports, ferries,
+    rewards, ground effect zones).
+12. UI: theme and widgets, HUD (bars, gauge, hotbar, party, boss bar, compass with objective and
+    exit markers, lock-on reticle, toasts, banners, fades, letterbox), dialogue with choices,
+    cutscene director, town services, pause menu (character, items, journal with abandon,
+    party, settings, save/load to any slot, quit), title screen with slot management, character
+    creator with the Warrior of Light editor.
+13. Lint loop: compiled every script; fixed strict type-inference errors, renamed helpers that
+    collided with built-in Godot methods (_get, _set), removed placeholder code.
+14. Automated play tests (dev-only harness, not shipped):
+    - Full flow with screenshots: opening cutscene, city, field, combat, large monster,
+      swimming, pause menu. Fixed: interaction-target typing bug, cutscene camera clipping into
+      the lying character and under sloped terrain, early fade-in during the opening, overly dark
+      sea, oversized Coeurl whiskers, creator preview facing away.
+    - Balance: small monsters hit too hard at level 1; damage scaling reduced (small x5, large
+      x8.5 attack multipliers); stand-up invulnerability made consistent.
+    - All 19 jobs: every move and job action executed against a target; all dealt damage with no
+      errors.
+    - Story flow: talk to the guildmaster (cutscene, leves unlocked), depart on the first quest,
+      complete it, rewards granted, return to town.
+    - All 12 cutscenes played end to end; fixed an un-normalised axis in slash effects.
+    - All missions: 7 main scenario, 8 side quests and 5 leve types departed, simulated and
+      completed with correct rewards.
+    - Fixed: the random leve generator could pick the story's bandit chief, and story bosses
+      could spawn far above the player's level (story hunts now scale to the quest level).
+15. Performance pass: monster rigid parts merged per pivot and material; shadow cascades reduced
+    to 2 on Medium/High (4 on Ultra); distant monsters stop thinking and hide; NPC animation
+    pauses beyond 45 m.
+16. Code hygiene per the "purge unused scripts" rule: audited every function, variable,
+    constant and signal for use; removed unused ones (an unused quest helper, item price
+    helper, expression setter, two never-connected signals, a dead constant, two dead
+    variables, a stale group lookup) and wired two signals that should be used (input device
+    change refreshes button prompts; quest progress refreshes NPC quest markers). Removed the
+    one-off VRM inspector tool. The dev test harness lives in game/_dev, is git-ignored and is
+    excluded from exports.
+17. Added Elden Ring-style features: aetherytes as Sites of Grace (rest to heal, respawn foes,
+    save) and gil dropped on fainting outside quests, recoverable once at the spot. City
+    buildings named after their FFXIV counterparts (e.g. The Bismarck, Hawkers' Alley,
+    Gladiators' Guild, Skysteel Manufactory).
+18. Exported Build/EorzeaHunter.exe + .pck; verified the pack boots with the engine and that no
+    dev files are inside. Wrote README.md and this file.
+
+---------------------------------------------------------
+5. STORY OUTLINE (post-Endwalker; the player stays a mere adventurer)
+---------------------------------------------------------
+ 1. A Rude Awakening - wake robbed on the road outside your city; a villager helps you in,
+    gives you a hempen tunic, and points you to the adventurers' guild (Mother Miounne at the
+    Carline Canopy, Baderon at the Drowning Wench, Momodi at the Quicksand, or Gibrillont at the
+    Forgotten Knight). Rest at the inn; once recovered, the guild introduces guildleves and meals.
+ 2. Leves and Lessons - first contract: cull beasts outside the city.
+ 3. Highway Robbery - search the Gilded Fangs' caches. Thancred drops in and scatters the thugs.
+ 4. The Long Road - escort a caravan. Alphinaud and Alisaie, returning from relief work, blast a
+    beast that ambushes you.
+ 5. A Beast Out of Season - hunt an aether-maddened beast; Y'shtola cleanses its lingering
+    despair.
+ 6. Fangs Bared - Urianger and G'raha Tia (on Students of Baldesion business) warn you; defend a
+    camp from bandit waves.
+ 7. Gerolt the Grasping - defeat the bandit chief in Central Thanalan and recover your
+    belongings; his ledger points to robed buyers in Coerthas.
+ 8. Echoes of the Final Days - protect refugees at Camp Dragonhead while the Warrior of Light
+    and Estinien destroy a beast born of lingering despair.
+ 9. Just an Adventurer - the guild welcomes you properly. Open play continues.
+ Side quests include Krile collecting crystal samples in Mor Dhona.
+
+---------------------------------------------------------
+6. KNOWN LIMITATIONS AT TIME OF WRITING
+---------------------------------------------------------
+- Six of the eight races are shaped from the Hyur and Miqo'te bases rather than dedicated models.
+- Two provided hairstyles (plus a close crop) and one clothing set (tinted per tier and dye).
+- Cities and regions are stylised layouts using the real names, landmarks and connections, not
+  exact copies of FFXIV's maps.
+- Tested on Linux with a software renderer; not yet run on Windows hardware. The frame rate in
+  the sandbox (software rendering) is not representative of a real GPU.
