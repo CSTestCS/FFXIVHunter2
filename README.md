@@ -4,10 +4,13 @@ An unofficial fan game set in the world of FINAL FANTASY XIV after Endwalker. It
 
 ## Play
 
-1. Download the `Build/` folder. Keep `EorzeaHunter.exe` and `EorzeaHunter.pck` together.
-2. Run `EorzeaHunter.exe` (Windows 10/11, 64-bit, GPU with Vulkan or Direct3D 12 support).
+**[Download EorzeaHunter-Windows.zip](https://github.com/CSTestCS/FFXIVHunter2/raw/claude/affectionate-ritchie-g7jiwu/EorzeaHunter-Windows.zip)** (43 MB, one file).
 
-Saves and settings are stored in `%APPDATA%\EorzeaHunter\`. There are 8 independent save slots.
+1. Unzip it anywhere.
+2. Double-click `EorzeaHunter.exe` (Windows 10/11, 64-bit).
+3. If you only see a black screen, close the game and double-click `Play in Safe Mode (OpenGL).bat` instead.
+
+The game picks a graphics API automatically: Vulkan first, then Direct3D 12, then OpenGL. Saves, settings and logs are stored in `%APPDATA%\EorzeaHunter\` (the log is `logs\godot.log`). There are 8 independent save slots.
 
 ## Controls
 
@@ -53,8 +56,8 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 
 ## Building from source
 
-- Engine: Godot 4.3 stable (Forward+). Open `game/` in the editor, or export headless:
-  `godot --headless --path game --export-release "Windows Desktop" ../Build/EorzeaHunter.exe`
+- Engine: Godot 4.5.1 stable (Forward+, with automatic fallback to the OpenGL Compatibility renderer). Open `game/` in the editor, or export headless:
+  `godot --headless --path game --export-release "Windows Desktop" ../dist/EorzeaHunter.exe` (the game data is embedded in the exe)
 - Character assets in `game/assets/characters/` are generated from the provided VRoid `.vrm` files with `tools/vrm_split.py`:
   `python3 tools/vrm_split.py <folder with .vrm files> game/assets/characters`
   The tool keeps each base body intact, isolates hair from the hairstyle samples and clothing items from the clothing samples (the sample bodies are dropped), rebinds every part to the standard humanoid bones, converts MToon toon materials to physically based ones, and writes shared, downscaled textures.
@@ -64,4 +67,4 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 - Elezen, Lalafell, Roegadyn, Au Ra, Hrothgar and Viera are shaped from the two provided base bodies (Hyur and Miqo'te) with proportion changes and procedural ears, horns and tails. They are approximations until dedicated models are added.
 - Two hairstyles are provided (plus a close crop) and one clothing set, which is tinted per armour tier and dye.
 - Cities and regions are stylised layouts built around their real landmarks, names and connections. They are not one-to-one copies of the FFXIV maps.
-- The build was tested on Linux with a software renderer. It has not been run on Windows hardware yet.
+- The Windows exe was tested under Wine with software Vulkan and OpenGL drivers (both reach the title screen with no errors), and the gameplay test suites ran on the Linux build. It has not been run on real Windows GPU hardware here.

@@ -38,8 +38,17 @@ func set_opt(k: String, val) -> void:
 	save()
 
 
+## True when running on the OpenGL fallback renderer (no decals, TAA, FSR, SSAO or volumetric fog).
+func is_compat() -> bool:
+	return RenderingServer.get_current_rendering_method() == "gl_compatibility"
+
+
 func apply() -> void:
 	gfx = PRESETS.get(v["preset"], PRESETS["High"]).duplicate()
+	if is_compat():
+		for k in ["ssao", "ssil", "ssr", "fog", "sss"]: gfx[k] = false
+		gfx["scale"] = 1.0
+		gfx["aa"] = 0
 	if not DisplayServer.get_name() == "headless":
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if v["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if v["vsync"] else DisplayServer.VSYNC_DISABLED)
@@ -47,8 +56,9 @@ func apply() -> void:
 	var vp := get_viewport()
 	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if gfx["scale"] < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
 	vp.scaling_3d_scale = gfx["scale"]
-	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if gfx["aa"] >= 1 else Viewport.SCREEN_SPACE_AA_DISABLED
-	vp.use_taa = gfx["aa"] >= 2
+	if not is_compat():
+		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if gfx["aa"] >= 1 else Viewport.SCREEN_SPACE_AA_DISABLED
+		vp.use_taa = gfx["aa"] >= 2
 	vp.mesh_lod_threshold = 1.0 if gfx["draw"] >= 1.0 else 2.5
 	var sh: int = [1024, 2048, 4096, 4096][gfx["shadows"]]
 	RenderingServer.directional_shadow_atlas_set_size(sh, true)

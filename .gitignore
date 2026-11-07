@@ -3,3 +3,5 @@ game/.godot/
 # Dev-only automated test harness (never shipped)
 game/_dev/
 *.tmp
+# Local export output (the shipped download is EorzeaHunter-Windows.zip)
+dist/

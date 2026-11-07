@@ -40,9 +40,9 @@ func _unhandled_input(e: InputEvent) -> void:
 
 
 func open(tab := 0) -> void:
-	_rebuild()
 	visible = true
-	tabs.current_tab = tab
+	await _rebuild()
+	tabs.current_tab = clampi(tab, 0, tabs.get_tab_count() - 1)
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_focus_tab()

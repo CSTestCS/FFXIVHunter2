@@ -175,28 +175,57 @@ func telegraph(shape: String, pos: Vector3, dir: Vector3, p: Dictionary, time: f
 			key = "donut_%d" % int(p.get("inner", 0.4) * 100.0); sx = p["radius"] * 2.0; sz = sx
 		"line":
 			sx = p.get("width", 2.0); sz = p.get("length", 10.0); offset = Vector3(0, 0, -sz * 0.5)
-	var base := Decal.new()
-	base.texture_albedo = _shape_tex(key)
-	base.size = Vector3(sx, 12.0, sz)
-	base.modulate = Color(color, 0.55)
-	base.albedo_mix = 1.0
-	base.emission_energy = 0.0
-	base.upper_fade = 0.15; base.lower_fade = 0.15
-	base.position = offset
-	base.cull_mask = 1
-	root.add_child(base)
-	var fill := base.duplicate() as Decal
-	fill.modulate = Color(color.lightened(0.3), 0.75)
-	root.add_child(fill)
+	var base: Node3D
+	var fill: Node3D
+	if Settings.is_compat():
+		# OpenGL fallback has no decals: draw flat quads slightly above the ground instead.
+		base = _flat_marker(key, sx, sz, Color(color, 0.45))
+		fill = _flat_marker(key, sx, sz, Color(color.lightened(0.3), 0.6))
+		base.position = offset + Vector3(0, 0.12, 0)
+		fill.position = Vector3(0, 0.14, 0)
+		root.add_child(base); root.add_child(fill)
+	else:
+		var dec := Decal.new()
+		dec.texture_albedo = _shape_tex(key)
+		dec.size = Vector3(sx, 12.0, sz)
+		dec.modulate = Color(color, 0.55)
+		dec.albedo_mix = 1.0
+		dec.emission_energy = 0.0
+		dec.upper_fade = 0.15; dec.lower_fade = 0.15
+		dec.position = offset
+		dec.cull_mask = 1
+		root.add_child(dec)
+		var dfill := dec.duplicate() as Decal
+		dfill.modulate = Color(color.lightened(0.3), 0.75)
+		root.add_child(dfill)
+		base = dec; fill = dfill
 	var start := Vector3(0.02, 1, 0.02) if shape != "line" else Vector3(1, 1, 0.02)
 	fill.scale = start
-	if shape == "line": fill.position = Vector3(0, 0, 0)
+	var lift := fill.position.y
+	if shape == "line": fill.position = Vector3(0, lift, 0)
 	var tw := root.create_tween()
 	tw.tween_property(fill, "scale", Vector3.ONE, time)
-	if shape == "line": tw.parallel().tween_property(fill, "position", offset, time)
+	if shape == "line": tw.parallel().tween_property(fill, "position", offset + Vector3(0, lift, 0), time)
 	tw.tween_callback(root.queue_free)
 	if danger and not Settings.v["aoe_markers"]: root.visible = false
 	return root
+
+
+func _flat_marker(key: String, sx: float, sz: float, col: Color) -> MeshInstance3D:
+	var q := QuadMesh.new()
+	q.size = Vector2(sx, sz)
+	q.orientation = PlaneMesh.FACE_Y
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_texture = _shape_tex(key)
+	m.albedo_color = col
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mi := MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 
 static func _shape_tex(key: String) -> Texture2D:

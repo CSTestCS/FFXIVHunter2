@@ -99,7 +99,7 @@ Findings from inspecting the VRM (VRM 1.0, VRoid) files:
 ---------------------------------------------------------
 3. TECHNOLOGY DECISIONS
 ---------------------------------------------------------
-- Engine: Godot 4.3 stable, Forward+ renderer (Vulkan, with D3D12 fallback on Windows).
+- Engine: Godot 4.3 stable at first; upgraded to Godot 4.5.1 in round 2 (see section 7).
   Chosen because it can export a Windows .exe from this Linux environment, imports glTF natively,
   and has a fast native animation system. Export templates downloaded from GitHub releases.
 - Language: GDScript, everything built from code and data (very few scene files) so content is
@@ -253,3 +253,39 @@ Findings from inspecting the VRM (VRM 1.0, VRoid) files:
   exact copies of FFXIV's maps.
 - Tested on Linux with a software renderer; not yet run on Windows hardware. The frame rate in
   the sandbox (software rendering) is not representative of a real GPU.
+
+---------------------------------------------------------
+7. ROUND 2: BLACK SCREEN AND DOWNLOAD FORMAT
+---------------------------------------------------------
+User message (verbatim):
+"The game launches but remains a black screen, also downloading the build folder is an annoying
+way to download the game"
+
+Investigation:
+- Installed Wine and ran the actual Windows .exe against the sandbox's software Vulkan driver.
+  The Godot 4.3 build reached the title screen within 20 seconds, so the black screen is
+  specific to real Windows graphics drivers and could not be reproduced exactly.
+- Most likely cause: Godot 4.3 falls back from Vulkan to Direct3D 12 when Vulkan has problems,
+  and that fallback can render black without an extra shader DLL; 4.3 has no OpenGL fallback.
+
+Changes:
+- Upgraded the engine to Godot 4.5.1, which falls back Vulkan -> Direct3D 12 -> OpenGL
+  automatically. (Godot 4.6.1 was tried first, but its Windows binary crashed at startup under
+  this Wine version, so it could not be verified and was not used.)
+- Added an OpenGL (Compatibility renderer) path: ground telegraphs draw as flat quads because
+  decals are unavailable there, water depth math adjusted for OpenGL, and unsupported effects
+  (SSAO, SSIL, SSR, volumetric fog, subsurface scattering, TAA/FXAA, FSR) are turned off
+  automatically. Removed a project-level anti-aliasing default that errored on OpenGL.
+- Added a boot splash image ("Loading...") so first launch never shows a plain black window
+  while shaders compile.
+- Fixed the pause menu selecting a tab before its tabs were built.
+- Distribution: the game data is now embedded in the exe, shipped as a single
+  EorzeaHunter-Windows.zip (43 MB) in the repository root, containing EorzeaHunter.exe,
+  "Play in Safe Mode (OpenGL).bat" (forces the OpenGL renderer) and "READ ME.txt". The old
+  Build/ folder was removed.
+
+Verification:
+- Windows exe under Wine: both Vulkan and forced OpenGL reach the title screen with no game errors.
+- Linux build on 4.5.1: all 19 jobs, all 20 missions and all 12 cutscenes pass the automated
+  suites; a rendered playthrough on the OpenGL renderer (city, field, combat, swimming, menu)
+  works.

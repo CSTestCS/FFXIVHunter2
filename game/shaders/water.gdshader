@@ -23,7 +23,11 @@ void fragment() {
 	NORMAL_MAP = normalize(vec3(ax * 10.0, az * 10.0, 1.0)) * 0.5 + 0.5;
 	NORMAL_MAP_DEPTH = 0.8;
 	float d = texture(depth_tex, SCREEN_UV).r;
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	vec4 ndc = vec4(SCREEN_UV * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+#else
 	vec4 ndc = vec4(SCREEN_UV * 2.0 - 1.0, d, 1.0);
+#endif
 	vec4 vp = INV_PROJECTION_MATRIX * ndc;
 	vp.xyz /= vp.w;
 	float thickness = clamp(VERTEX.z - vp.z, 0.0, 100.0);
