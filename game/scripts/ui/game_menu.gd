@@ -98,13 +98,7 @@ func _rebuild() -> void:
 	ch.add_child(UI.button("Return to game", close))
 	# Items
 	var it := _page("Items")
-	it.add_child(UI.label("Gil: %d" % int(s["gil"]), 22, UI.GOLD))
-	for k in s["inventory"]:
-		it.add_child(UI.label("%s  x%d" % [Data.item_name(k), int(s["inventory"][k])], 19))
-	it.add_child(UI.label("Materia:", 20, UI.GOLD))
-	for m in s["materia"]:
-		it.add_child(UI.label("   %s %s" % [ItemData.MATERIA[m["type"]]["name"], ItemData.MATERIA_GRADES[int(m["grade"])]], 18))
-	it.add_child(UI.button("Return to game", close))
+	_build_items(it)
 	# Journal
 	var jr := _page("Journal")
 	var q := Game.current_msq()
@@ -137,7 +131,7 @@ func _rebuild() -> void:
 	var sv := _page("Save & Load")
 	sv.add_child(UI.label("Save to a slot (current: %d)" % (Game.slot + 1), 20, UI.GOLD))
 	for i in SaveSystem.SLOTS:
-		var idx := i
+		var idx: int = i
 		var row := UI.hbox(6)
 		row.add_child(UI.button("Save", func():
 			Game.state["pos"] = [world.player.global_position.x, world.player.global_position.y, world.player.global_position.z]
@@ -162,6 +156,92 @@ func _rebuild() -> void:
 	_focus_tab()
 
 
+# ------------------------------------------------------------------ inventory
+func _item_row(text: String, desc: String, buttons: Array) -> HBoxContainer:
+	var row := UI.hbox(8)
+	var v := UI.vbox(0)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var l := UI.label(text, 19, UI.TEXT)
+	var d := UI.label(desc, 15, UI.DIM)
+	d.clip_text = true
+	d.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	v.add_child(l); v.add_child(d)
+	row.add_child(v)
+	for b in buttons:
+		var btn := UI.button(b[0], b[1], 150)
+		btn.disabled = not b[2]
+		row.add_child(btn)
+	return row
+
+
+func _items_changed() -> void:
+	Sfx.play("ui_ok", -6.0)
+	await _rebuild()
+	tabs.current_tab = 1
+	_focus_tab()
+
+
+func _build_items(it: VBoxContainer) -> void:
+	var s := Game.state
+	var p: Player = world.player
+	it.add_child(UI.label("Gil: %d" % int(s["gil"]), 22, UI.GOLD))
+	it.add_child(UI.label("Consumables  (quick item used with [%s]: %s)" % [Inputs.glyph("item"), Data.item_name(s.get("quick_item", "potion"))], 20, UI.GOLD))
+	var any := false
+	for id in ItemData.CONSUMABLES:
+		var n := Game.count(id)
+		if n <= 0: continue
+		any = true
+		var c: Dictionary = ItemData.CONSUMABLES[id]
+		var desc := "Revives you automatically when you fall." if c.has("revive") else "Restores %s%s." % [
+			("%d%% HP" % int(float(c.get("heal", 0.0)) * 100.0)) if c.has("heal") else "", (" %s%d MP" % ["and " if c.has("heal") else "", int(c["mp"])]) if c.has("mp") else ""]
+		var iid: String = id
+		it.add_child(_item_row("%s  x%d" % [c["name"], n], desc, [
+			["Use", func(): p.use_item(iid); _items_changed(), not c.has("revive") and not p.dead],
+			["Set Quick", func(): Game.state["quick_item"] = iid; _items_changed(), not c.has("revive") and s.get("quick_item", "potion") != iid],
+		]))
+	if not any: it.add_child(UI.label("No consumables. Buy potions at the market.", 17, UI.DIM))
+	it.add_child(UI.label("Materials", 20, UI.GOLD))
+	any = false
+	for id in s["inventory"]:
+		if not ItemData.MATERIALS.has(id): continue
+		any = true
+		var mid: String = id
+		it.add_child(_item_row("%s  x%d" % [Data.item_name(mid), Game.count(mid)], "Used for upgrades at the smithy. Sells for %d gil at the market." % int(ItemData.MATERIALS[mid]["price"]), [
+			["Discard 1", func(): Game.add_item(mid, -1); _items_changed(), true],
+		]))
+	if not any: it.add_child(UI.label("No materials yet. Defeat and carve monsters, or gather on quests.", 17, UI.DIM))
+	var job := Game.job()
+	var wm: Array = s["weapons"][job]["materia"]
+	it.add_child(UI.label("Materia  (weapon slots %d/%d)" % [wm.size(), Game.materia_slots_weapon()], 20, UI.GOLD))
+	for i in s["materia"].size():
+		var m: Dictionary = s["materia"][i]
+		var idx: int = i
+		it.add_child(_item_row("%s %s" % [ItemData.MATERIA[m["type"]]["name"], ItemData.MATERIA_GRADES[int(m["grade"])]], "Boosts %s while melded." % ItemData.MATERIA[m["type"]]["stat"], [
+			["Meld", func(): wm.append(s["materia"][idx]); s["materia"].remove_at(idx); Game.state_changed.emit(); _items_changed(), wm.size() < Game.materia_slots_weapon()],
+		]))
+	for i in wm.size():
+		var m: Dictionary = wm[i]
+		var idx: int = i
+		it.add_child(_item_row("[Melded] %s %s" % [ItemData.MATERIA[m["type"]]["name"], ItemData.MATERIA_GRADES[int(m["grade"])]], "In your %s." % Data.weapon_name(job, int(s["weapons"][job]["tier"])), [
+			["Remove", func(): s["materia"].append(wm[idx]); wm.remove_at(idx); Game.state_changed.emit(); _items_changed(), true],
+		]))
+	it.add_child(UI.label("Equipment appearance", 20, UI.GOLD))
+	var hidden: Dictionary = s.get("armor_hidden", {})
+	for slot in ["head", "body", "legs", "feet"]:
+		var t := int(s["armor"][slot])
+		if t < 0: continue
+		var sl: String = slot
+		var hid: bool = hidden.get(sl, false)
+		it.add_child(_item_row("%s %s" % [ItemData.ARMOR_SETS[t]["name"], ItemData.ARMOR_SLOTS[sl]], "Defence %d. %s" % [int(ItemData.ARMOR_SETS[t]["def"]), "Hidden (still protects you)." if hid else "Visible."], [
+			["Show" if hid else "Hide", func():
+				var h: Dictionary = Game.state.get("armor_hidden", {})
+				h[sl] = not hid
+				Game.state["armor_hidden"] = h
+				p.rebuild(); _items_changed(), true],
+		]))
+	it.add_child(UI.button("Return to game", close))
+
+
 class SettingsUI:
 	static func build(v: VBoxContainer) -> void:
 		v.add_child(UI.label("Graphics", 22, UI.GOLD))
@@ -180,6 +260,8 @@ class SettingsUI:
 		inv.toggled.connect(func(b): Settings.set_opt("invert_y", b)); v.add_child(inv)
 		var aoe := CheckBox.new(); aoe.text = "Show enemy attack markers (off = Elden Ring style, read the body language)"; aoe.button_pressed = Settings.v["aoe_markers"]
 		aoe.toggled.connect(func(b): Settings.set_opt("aoe_markers", b)); v.add_child(aoe)
+		var hs := CheckBox.new(); hs.text = "Hide weapons while sheathed"; hs.button_pressed = Settings.v.get("hide_sheathed", false)
+		hs.toggled.connect(func(b): Settings.set_opt("hide_sheathed", b)); v.add_child(hs)
 		v.add_child(_slider_row("Camera shake", 0.0, 1.5, Settings.v["cam_shake"], func(x): Settings.set_opt("cam_shake", x)))
 		v.add_child(_slider_row("Text speed", 0.5, 3.0, Settings.v["text_speed"], func(x): Settings.set_opt("text_speed", x)))
 		v.add_child(UI.label("Audio", 22, UI.GOLD))

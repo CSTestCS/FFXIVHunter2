@@ -87,7 +87,10 @@ func rebuild() -> void:
 	jd = Data.jobs[job]
 	role = jd["role"]
 	display_name = s.get("name", "Adventurer")
-	model.build(s["appearance"], {"armor": s["armor"], "dyes": s.get("dyes", {}), "weapon": jd["weapon"], "tier": int(s["weapons"][job]["tier"])})
+	var shown: Dictionary = s["armor"].duplicate()
+	for k in s.get("armor_hidden", {}):
+		if s["armor_hidden"][k]: shown[k] = -1
+	model.build(s["appearance"], {"armor": shown, "dyes": s.get("dyes", {}), "weapon": jd["weapon"], "tier": int(s["weapons"][job]["tier"])})
 	model.set_drawn(false)
 	_refresh_stats()
 	hp = max_hp * float(s.get("hp_frac", 1.0))
@@ -327,8 +330,21 @@ func _st_guard(delta: float, input: Vector3) -> void:
 		buffered = ""; guarding = false; _start_roll(input)
 
 
+## Uses a consumable immediately (from the inventory menu).
+func use_item(id: String) -> void:
+	if Game.count(id) <= 0 or dead: return
+	var c: Dictionary = ItemData.CONSUMABLES.get(id, {})
+	if c.is_empty() or c.has("revive"): return
+	Game.add_item(id, -1)
+	if c.has("heal"): heal(max_hp * float(c["heal"]))
+	if c.has("mp"): mp = minf(max_mp, mp + float(c["mp"]))
+	Sfx.play("heal", -6.0)
+	if world: world.fx.burst(center(), Color(0.5, 1, 0.6), 1.5)
+
+
 func _start_drink() -> void:
-	for id in ["potion", "elixir", "ether"]:
+	var order := [Game.state.get("quick_item", "potion"), "potion", "elixir", "ether"]
+	for id in order:
 		if Game.count(id) > 0:
 			_set_state("drink")
 			move = {"item": id}

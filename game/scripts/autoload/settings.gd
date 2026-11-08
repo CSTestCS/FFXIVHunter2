@@ -14,7 +14,7 @@ const PRESETS := {
 var v := {
 	"preset": "High", "fullscreen": true, "vsync": true, "fps_cap": 0,
 	"master": 0.8, "sfx": 0.9, "music": 0.6,
-	"fov": 70.0, "sens": 1.0, "invert_y": false, "aoe_markers": true, "text_speed": 1.0, "cam_shake": 1.0,
+	"fov": 70.0, "sens": 1.0, "invert_y": false, "aoe_markers": true, "hide_sheathed": false, "text_speed": 1.0, "cam_shake": 1.0,
 }
 var gfx: Dictionary = PRESETS["High"].duplicate()
 

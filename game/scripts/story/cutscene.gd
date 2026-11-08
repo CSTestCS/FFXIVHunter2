@@ -10,6 +10,7 @@ var cam: Camera3D
 var actors := {}
 var anchor := Transform3D()
 var skipping := false
+var _hidden: Array = []   # standing NPCs hidden while their scripted double is on stage
 var _flash: ColorRect
 var _title: Label
 var _title_sub: Label
@@ -68,7 +69,28 @@ func play_cmds(cmds: Array) -> void:
 	_finish()
 
 
+## The character a shot is aimed at (by id, or the one nearest the aim point), or null.
+func _face_model(look: Vector3, spec) -> CharModel:
+	if spec is String:
+		var m = _model(spec)
+		return m if m is CharModel else null
+	if look.y - anchor.origin.y > 2.6: return null   # deliberate sky/monster shots
+	var best: CharModel = null
+	var best_d := 1.8
+	var cands: Array = [world.player.model]
+	for k in actors:
+		if actors[k] is CharModel and is_instance_valid(actors[k]): cands.append(actors[k])
+	for m in cands:
+		var d := Vector2(m.global_position.x - look.x, m.global_position.z - look.z).length()
+		if d < best_d: best_d = d; best = m
+	return best
+
+
 func _finish() -> void:
+	world.player.model.set_expression("neutral")
+	for n in _hidden:
+		if is_instance_valid(n): n.visible = true
+	_hidden.clear()
 	for k in actors:
 		if is_instance_valid(actors[k]): actors[k].queue_free()
 	actors.clear()
@@ -157,6 +179,10 @@ func _spawn(c: Dictionary) -> void:
 				var vl: Array = ZoneData.STARTS[Game.city()]["villager_look"]
 				ap = RaceData.default_appearance(vl[0], vl[1], vl[2]); ap["hair_style"] = 1; ap["hair_color"] = "#6b4a32"
 			"<gm>":
+				for it in world.interactables:
+					var nn = it.get("node")
+					if nn is NPC and nn.role == "guildmaster":
+						nn.visible = false; _hidden.append(nn)
 				var gm: String = StoryData.GUILDS[Game.city()]["gm"]
 				ap = Data.cast_appearance(gm); job = StoryData.CAST[gm]["look"][6]
 				gear["dyes"] = {"body": ap["dye_top"], "legs": ap["dye_bottom"]}; gear["armor"] = {"body": 2, "legs": 1, "feet": 1}
@@ -248,6 +274,9 @@ func _run(c: Dictionary) -> void:
 				tw.tween_property(n, "global_position", to, float(c["t"]))
 				await tw.finished
 			if n is CharModel: n.play("idle", 0.25)
+		"expr":
+			var em = _model(c["id"])
+			if em is CharModel: em.set_expression(c["expr"])
 		"anim":
 			var n = _model(c["id"])
 			if n is CharModel: n.play(c["anim"], 0.2)
@@ -255,6 +284,17 @@ func _run(c: Dictionary) -> void:
 		"cam":
 			var pos := _rel(c["pos"])
 			var look := _rel(c["look"]) if c["look"] is Array else _actor_pos(c["look"])
+			# Frame the real face: if the shot aims near a character, retarget to their head and
+			# keep the camera's angle, so height, race size and uneven ground never cut them out.
+			var fm := _face_model(look, c["look"])
+			if fm:
+				var face := fm.head_pos()
+				pos.y += face.y - look.y
+				# Small speakers (e.g. Lalafell) get a proportionally closer shot.
+				var k := clampf(fm.scale.y, 0.6, 1.2)
+				pos = face + (pos - face) * k
+				look = face
+				pos = world.clear_shot(face, pos)
 			pos.y = maxf(pos.y, world.ground_height(pos.x, pos.z) + 0.35)
 			var xf := Transform3D(Basis(), pos).looking_at(look, Vector3.UP)
 			var t := float(c.get("t", 0.0))
@@ -270,9 +310,8 @@ func _run(c: Dictionary) -> void:
 			if skipping: return
 			var sp := _speaker(c["who"])
 			var m = sp[1]
-			if m is CharModel: m.talking = true
-			await world.dialogue.say(sp[0], Game.fmt(c["text"]))
-			if m is CharModel: m.talking = false
+			if m is CharModel and c.has("expr"): m.set_expression(c["expr"])
+			await world.dialogue.say(sp[0], Game.fmt(c["text"]), m if m is CharModel else null)
 			if not is_instance_valid(self): return
 		"wait":
 			await _wait(float(c["t"]))

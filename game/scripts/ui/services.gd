@@ -91,11 +91,39 @@ func talk(npc: NPC) -> void:
 
 func _chat(npc: NPC) -> void:
 	world.player.controls_enabled = false
-	npc.model.talking = true
-	await world.dialogue.say(npc.npc_name, npc.line())
-	npc.model.talking = false
+	npc.busy = true
+	npc.label.visible = false; npc.marker.visible = false
+	npc.model.play("talk", 0.2)
+	var cam := _talk_camera(npc)
+	npc.model.set_expression(["joy", "fun", "neutral"][randi() % 3])
+	await world.dialogue.say(npc.npc_name, npc.line(), npc.model)
+	npc.model.set_expression("neutral")
+	npc.busy = false
+	npc.label.visible = true; npc.marker.visible = true
 	world.dialogue.close()
+	if is_instance_valid(cam): cam.queue_free()
+	world.player.camera.current = true
 	world.player.controls_enabled = true
+
+
+## Over-the-shoulder camera aimed at the NPC's actual face.
+func _talk_camera(npc: NPC) -> Camera3D:
+	var p: Player = world.player
+	var head := npc.model.head_pos()
+	var to_p := p.global_position - npc.global_position
+	to_p.y = 0
+	if to_p.length() < 0.1: to_p = -npc.global_transform.basis.z
+	npc.rotation.y = atan2(to_p.x, to_p.z) + PI
+	var side := Vector3(-to_p.z, 0, to_p.x).normalized()
+	var pos := head + to_p.normalized() * 1.7 + side * 0.45 + Vector3(0, 0.08, 0)
+	pos.y = maxf(pos.y, world.ground_height(pos.x, pos.z) + 0.4)
+	pos = world.clear_shot(head, pos, [npc.get_rid()])
+	var cam := Camera3D.new()
+	cam.fov = 40.0
+	world.add_child(cam)
+	cam.global_transform = Transform3D(Basis(), pos).looking_at(head, Vector3.UP)
+	cam.current = true
+	return cam
 
 
 func _intro_in_town(cs: String) -> bool:
@@ -103,6 +131,20 @@ func _intro_in_town(cs: String) -> bool:
 	for c in Data.cutscenes[cs]:
 		if c["cmd"] == "spawn" and c["id"] == "gm": return true
 	return false
+
+
+## Places the player two steps in front of an NPC, facing them, so scripted scenes
+## (which are laid out relative to the player) line up with where the NPC really stands.
+func _stage_at(npc: NPC) -> void:
+	var fwd := -npc.global_transform.basis.z
+	fwd.y = 0
+	fwd = fwd.normalized()
+	var p: Player = world.player
+	var pos := npc.global_position + fwd * 2.0
+	pos.y = world.ground_height(pos.x, pos.z) + 0.05
+	p.global_position = pos
+	p.velocity = Vector3.ZERO
+	p.rotation.y = atan2(fwd.x, fwd.z)
 
 
 func _guild(npc: NPC) -> void:
@@ -113,6 +155,7 @@ func _guild(npc: NPC) -> void:
 		var outro: String = q.get("outro", "")
 		var rew := Game.complete_msq()
 		if outro != "":
+			_stage_at(npc)
 			await world.cutscene.play(outro)
 		world.hud.banner("QUEST COMPLETE", q["name"] + "\n" + rew)
 		return
@@ -121,6 +164,7 @@ func _guild(npc: NPC) -> void:
 		_add("Depart for %s" % Data.zones[q["zone"]]["name"], func():
 			close()
 			if _intro_in_town(q.get("intro", "")):
+				_stage_at(npc)
 				await world.cutscene.play(q["intro"])
 				var qq := q.duplicate(); qq["intro"] = ""
 				Game.depart(qq)

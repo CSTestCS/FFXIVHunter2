@@ -19,8 +19,9 @@ import numpy as np
 from PIL import Image
 
 MAX_TEX = 1024
-KEEP_MORPHS = ['Fcl_ALL_Neutral', 'Fcl_ALL_Angry', 'Fcl_ALL_Joy', 'Fcl_ALL_Sorrow', 'Fcl_ALL_Surprised',
-               'Fcl_EYE_Close', 'Fcl_MTH_A', 'Fcl_MTH_O']
+# VRoid expressions (emotions), blink and the five vowel visemes used for lip movement.
+KEEP_MORPHS = ['Fcl_ALL_Neutral', 'Fcl_ALL_Angry', 'Fcl_ALL_Fun', 'Fcl_ALL_Joy', 'Fcl_ALL_Sorrow', 'Fcl_ALL_Surprised',
+               'Fcl_EYE_Close', 'Fcl_MTH_A', 'Fcl_MTH_I', 'Fcl_MTH_U', 'Fcl_MTH_E', 'Fcl_MTH_O']
 COMP = {5120: np.int8, 5121: np.uint8, 5122: np.int16, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
 NCOMP = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4, 'MAT4': 16}
 

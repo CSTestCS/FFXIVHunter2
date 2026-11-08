@@ -13,6 +13,7 @@ var _wander := Vector3.ZERO
 var _home := Vector3.ZERO
 var _t := 0.0
 var world: Node
+var busy := false   # in conversation: stands still facing the player
 
 const LINES := [
 	"Have you heard? They say the Warrior of Light was seen near the Crystal Tower.",
@@ -121,7 +122,7 @@ func _physics_process(delta: float) -> void:
 	var far := dist > 45.0
 	model.set_far(far)
 	model.visible = dist < 110.0
-	if far or role != "citizen": return
+	if far or role != "citizen" or busy: return
 	_t -= delta
 	if _t <= 0.0:
 		_t = randf_range(4.0, 9.0)

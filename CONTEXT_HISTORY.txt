@@ -324,3 +324,53 @@ Verification:
   1600x900, 1280x720, 1024x768 (4:3) and 2560x1080 (ultrawide). The same check on the previous
   layout flagged the overflowing settings list, confirming it detects the problem.
 - Windows exe boots to the title screen under Wine with no errors; zip rebuilt (43 MB).
+
+---------------------------------------------------------
+9. ROUND 4: FACES, CAMERA, MARKERS, INVENTORY, LIGHTING
+---------------------------------------------------------
+User message (verbatim, with a screenshot of the washed-out character creator):
+"Eyeline should inherit the skin tone.
+Character inventory is not interactable
+Attack markers clip into terrain rather than being projected onto it
+Talking to characters often zooms the camera in but does not show the character due to height
+and terrain differences, ensure the conversation camera is looking at their actual face.
+Include a feature to hide weapons when sheathed.
+Make use of VRoid's expressions and visemes to make the characters' mouths move when they are
+talking and make their expressions match the scenes
+As can be seen in the provided screenshot, the character creation screen is extremely washed
+out, give it more well rounded lighting"
+
+Changes:
+- Eyeline and mouth layers of the VRoid face are now tinted with the chosen skin tone, matching
+  the face skin.
+- Inventory (pause menu > Items) is interactive: use consumables, choose the quick item used
+  with the potion button, discard materials, meld materia into the weapon or remove it, and
+  show/hide individual armour pieces (hidden pieces still protect).
+- Attack markers are now meshes draped over the terrain (and water surface) with the fill
+  animated in a shader, replacing decals and flat quads. They follow slopes on both the Vulkan
+  and OpenGL renderers and never sink into the ground.
+- Conversation cameras aim at the speaker's real head position (head bone), adjusting for race
+  size, height and uneven ground, and check line of sight: if a wall, pillar or the player's
+  body blocks the face, the camera swings around the speaker to the nearest clear angle. Town
+  NPC chats now also use a face-framing conversation camera.
+- New option: Settings > "Hide weapons while sheathed".
+- Faces: the asset pipeline now keeps VRoid's expressions (angry, fun, joy, sorrow, surprised),
+  blink and all five vowel visemes (A, I, U, E, O). Mouths follow the dialogue text as it
+  types (vowels map to visemes); every story line has an expression matching the scene;
+  expressions blend smoothly and blinking pauses during smiles. Town NPCs smile when chatting.
+- Character creator lighting: three-point studio lighting (warm key with soft shadows, cool fill,
+  rim light), dim backdrop, modest ambient, matte plinth, AgX tone mapping and SSAO, so skin keeps
+  its shading instead of washing out. The lights no longer draw a sun disc in the backdrop.
+- Found and fixed during testing: town NPCs kept wandering during conversations (they now stop
+  and face the player), story scenes with the guildmaster spawned a second copy away from the
+  real one (scenes are now staged at the real guildmaster, whose standing copy is hidden), shots
+  were framed for human-sized speakers (distance now scales with the speaker's size), NPC name
+  tags loomed over close-up shots (hidden while talking), and service NPCs (guildmaster, cook,
+  smith, merchant, trainer...) faced into their buildings (they now face the plaza).
+
+Verification:
+- Rendered tests (OpenGL renderer in the sandbox): creator lighting, joy/angry expressions with
+  A/O visemes, guildmaster and citizen conversations framed on the speaker's face, interactive
+  inventory, hidden sheathed weapons, and markers draped over a hillside and lake surface.
+- Headless suites: 19/19 jobs, 20/20 missions, 12/12 cutscenes pass.
+- Windows exe under Wine boots to the title screen on Vulkan and OpenGL with no errors.

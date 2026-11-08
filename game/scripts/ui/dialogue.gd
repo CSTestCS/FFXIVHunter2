@@ -41,7 +41,14 @@ func _ready() -> void:
 	panel.visible = false
 
 
-func say(speaker: String, text: String) -> void:
+var _speaker_model: CharModel
+var _last_char := -1
+
+
+## Shows a line. If a speaking model is given, its mouth follows the text as it types.
+func say(speaker: String, text: String, model: CharModel = null) -> void:
+	_speaker_model = model if is_instance_valid(model) else null
+	_last_char = -1
 	active = true
 	_choice_mode = false
 	UI.clear(choices)
@@ -87,6 +94,10 @@ func _process(delta: float) -> void:
 	if _typing:
 		_visible_chars += delta * 55.0 * float(Settings.v["text_speed"])
 		text_lbl.visible_characters = int(_visible_chars)
+		var i := int(_visible_chars)
+		if _speaker_model and is_instance_valid(_speaker_model) and i != _last_char and i < text_lbl.text.length():
+			_last_char = i
+			_speaker_model.speak_char(text_lbl.text[i])
 		if _visible_chars >= text_lbl.text.length():
 			_typing = false
 			text_lbl.visible_characters = -1

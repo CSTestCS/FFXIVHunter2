@@ -24,7 +24,7 @@ The game picks a graphics API automatically: Vulkan first, then Direct3D 12, the
 | Dodge roll (tap) / Sprint (hold) | Space | B |
 | Jump | F | A |
 | Interact / Talk / Carve | E | A |
-| Potion | R | X |
+| Quick item (set in Items menu) | R | X |
 | Lock-on / switch target | Tab or middle mouse | R3 |
 | Job actions 1-4 | 1-4 | D-pad |
 | Menu / Journal / Map compass | Esc / J | Start / Back |
@@ -44,6 +44,8 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 - **Progression**: levels (to 90), gil, weapon tiers (Weathered to Adamantite), four armour slots with dyes, materia crafting and melding, new jobs from the trainer, and party members recruited at the guild who fight by role, heal and dodge telegraphs.
 - **Elden Ring touches**: stamina-gated combat, i-frame rolls and backsteps, perfect guards, aetherytes that work like Sites of Grace (rest to heal, respawn foes and save), and gil dropped where you fall that you can recover once.
 - **Swimming and diving** with a breath meter, in seas, lakes and rivers.
+- **Expressive faces**: VRoid expressions and A/I/U/E/O visemes; mouths follow dialogue as it types, and expressions match each scene.
+- **Interactive inventory**: use items, set the quick item, discard materials, meld materia, show or hide armour pieces. Optional hiding of sheathed weapons.
 
 ## Performance design
 

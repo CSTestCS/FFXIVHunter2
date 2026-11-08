@@ -60,20 +60,45 @@ func _ready() -> void:
 	Sfx.music("title")
 
 
+## Studio lighting for the preview: warm key, cool fill and a rim light against a dim backdrop,
+## with modest ambient so skin keeps its shading instead of washing out.
 func _scene() -> void:
 	preview_root = Node3D.new(); add_child(preview_root)
 	var we := WorldEnvironment.new(); var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new(); var sm := ProceduralSkyMaterial.new()
-	sm.sky_top_color = Color("#2a3a6a"); sm.sky_horizon_color = Color("#9ab0c8"); sm.ground_horizon_color = Color("#6a7890"); sm.ground_bottom_color = Color("#1a1e28")
+	sm.sky_top_color = Color("#0e1424"); sm.sky_horizon_color = Color("#2c3448"); sm.ground_horizon_color = Color("#2c3448"); sm.ground_bottom_color = Color("#0a0c12")
+	sm.sky_energy_multiplier = 0.6
 	sky.sky_material = sm; env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY; env.tonemap_mode = Environment.TONE_MAPPER_ACES; env.ssao_enabled = Settings.gfx["ssao"]
-	env.glow_enabled = true
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color("#5a6478")
+	env.ambient_light_energy = 0.45
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 1.0
+	env.ssao_enabled = Settings.gfx["ssao"]; env.ssao_intensity = 1.4; env.ssao_radius = 0.6
+	env.glow_enabled = true; env.glow_intensity = 0.3
+	env.adjustment_enabled = true; env.adjustment_contrast = 1.06; env.adjustment_saturation = 1.05
 	we.environment = env; preview_root.add_child(we)
-	var key := DirectionalLight3D.new(); key.rotation_degrees = Vector3(-35, 35, 0); key.light_energy = 1.4; key.shadow_enabled = true; preview_root.add_child(key)
-	var rim := DirectionalLight3D.new(); rim.rotation_degrees = Vector3(-15, 200, 0); rim.light_energy = 0.7; rim.light_color = Color("#a8c8ff"); preview_root.add_child(rim)
+	var target := Vector3(0, 1.2, 0)
+	var key := DirectionalLight3D.new()
+	key.light_color = Color("#ffe4c8"); key.light_energy = 1.15; key.shadow_enabled = true
+	key.shadow_blur = 1.5
+	key.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	preview_root.add_child(key)
+	key.look_at_from_position(Vector3(-2.2, 3.0, 3.2), target, Vector3.UP)
+	var fill := DirectionalLight3D.new()
+	fill.light_color = Color("#b8ccff"); fill.light_energy = 0.35
+	fill.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	preview_root.add_child(fill)
+	fill.look_at_from_position(Vector3(3.0, 1.4, 2.4), target, Vector3.UP)
+	var rim := DirectionalLight3D.new()
+	rim.light_color = Color("#fff2e0"); rim.light_energy = 0.9
+	rim.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	preview_root.add_child(rim)
+	rim.look_at_from_position(Vector3(0.8, 2.6, -3.0), target, Vector3.UP)
 	var bt := Batcher.new()
-	bt.cyl(Vector3(0, -0.05, 0), 2.2, 0.1, "plinth", Props.pbr("#3a3e4a", 0.4, 0.3), false, 2.4, 32)
+	bt.cyl(Vector3(0, -0.05, 0), 2.2, 0.1, "plinth", Props.pbr("#2a2e38", 0.75, 0.0), false, 2.4, 32)
 	bt.commit(preview_root)
 	cam = Camera3D.new(); preview_root.add_child(cam); cam.current = true
 

@@ -6,6 +6,7 @@ extends Node3D
 
 static var _tex := {}
 static var _mats := {}
+static var _tele_shader: Shader = preload("res://shaders/telegraph.gdshader")
 var _numbers: Array[Label3D] = []
 var _num_i := 0
 var _sphere := SphereMesh.new()
@@ -158,74 +159,77 @@ func telegraph(shape: String, pos: Vector3, dir: Vector3, p: Dictionary, time: f
 	var root := Node3D.new()
 	add_child(root)
 	root.global_position = pos
-	if danger and get_parent().has_method("add_danger"): get_parent().add_danger(shape, pos, dir, p, time)
+	var w := get_parent()
+	if danger and w.has_method("add_danger"): w.add_danger(shape, pos, dir, p, time)
 	if dir.length() > 0.01:
 		var d := Vector3(dir.x, 0, dir.z).normalized()
 		root.global_transform.basis = Basis.looking_at(d, Vector3.UP)
 	var key := shape
-	var sx := 1.0
-	var sz := 1.0
-	var offset := Vector3.ZERO
+	var rect := Rect2()   # local XZ extent (x, z); forward is -Z
 	match shape:
 		"circle":
-			sx = p["radius"] * 2.0; sz = sx
+			rect = Rect2(-p["radius"], -p["radius"], p["radius"] * 2.0, p["radius"] * 2.0)
 		"cone":
-			key = "cone_%d" % int(p.get("arc", 90.0)); sx = p["radius"] * 2.0; sz = sx
+			key = "cone_%d" % int(p.get("arc", 90.0))
+			rect = Rect2(-p["radius"], -p["radius"], p["radius"] * 2.0, p["radius"] * 2.0)
 		"donut":
-			key = "donut_%d" % int(p.get("inner", 0.4) * 100.0); sx = p["radius"] * 2.0; sz = sx
+			key = "donut_%d" % int(p.get("inner", 0.4) * 100.0)
+			rect = Rect2(-p["radius"], -p["radius"], p["radius"] * 2.0, p["radius"] * 2.0)
 		"line":
-			sx = p.get("width", 2.0); sz = p.get("length", 10.0); offset = Vector3(0, 0, -sz * 0.5)
-	var base: Node3D
-	var fill: Node3D
-	if Settings.is_compat():
-		# OpenGL fallback has no decals: draw flat quads slightly above the ground instead.
-		base = _flat_marker(key, sx, sz, Color(color, 0.45))
-		fill = _flat_marker(key, sx, sz, Color(color.lightened(0.3), 0.6))
-		base.position = offset + Vector3(0, 0.12, 0)
-		fill.position = Vector3(0, 0.14, 0)
-		root.add_child(base); root.add_child(fill)
-	else:
-		var dec := Decal.new()
-		dec.texture_albedo = _shape_tex(key)
-		dec.size = Vector3(sx, 12.0, sz)
-		dec.modulate = Color(color, 0.55)
-		dec.albedo_mix = 1.0
-		dec.emission_energy = 0.0
-		dec.upper_fade = 0.15; dec.lower_fade = 0.15
-		dec.position = offset
-		dec.cull_mask = 1
-		root.add_child(dec)
-		var dfill := dec.duplicate() as Decal
-		dfill.modulate = Color(color.lightened(0.3), 0.75)
-		root.add_child(dfill)
-		base = dec; fill = dfill
-	var start := Vector3(0.02, 1, 0.02) if shape != "line" else Vector3(1, 1, 0.02)
-	fill.scale = start
-	var lift := fill.position.y
-	if shape == "line": fill.position = Vector3(0, lift, 0)
+			var wd: float = p.get("width", 2.0)
+			var ln: float = p.get("length", 10.0)
+			rect = Rect2(-wd * 0.5, -ln, wd, ln)
+	var mi := MeshInstance3D.new()
+	mi.mesh = _draped_mesh(root, rect, w)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var m := ShaderMaterial.new()
+	m.shader = _tele_shader
+	m.set_shader_parameter("shape_tex", _shape_tex(key))
+	m.set_shader_parameter("tint", color)
+	m.set_shader_parameter("linear_fill", shape == "line")
+	mi.material_override = m
+	root.add_child(mi)
 	var tw := root.create_tween()
-	tw.tween_property(fill, "scale", Vector3.ONE, time)
-	if shape == "line": tw.parallel().tween_property(fill, "position", offset + Vector3(0, lift, 0), time)
+	tw.tween_method(func(v: float): m.set_shader_parameter("progress", v), 0.0, 1.0, time)
 	tw.tween_callback(root.queue_free)
 	if danger and not Settings.v["aoe_markers"]: root.visible = false
 	return root
 
 
-func _flat_marker(key: String, sx: float, sz: float, col: Color) -> MeshInstance3D:
-	var q := QuadMesh.new()
-	q.size = Vector2(sx, sz)
-	q.orientation = PlaneMesh.FACE_Y
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_texture = _shape_tex(key)
-	m.albedo_color = col
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var mi := MeshInstance3D.new()
-	mi.mesh = q
-	mi.material_override = m
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return mi
+## Grid mesh over `rect` (marker-local XZ) whose vertices follow the ground (or water surface).
+func _draped_mesh(root: Node3D, rect: Rect2, w: Node) -> ArrayMesh:
+	var nx := clampi(int(ceil(rect.size.x / 0.9)), 2, 44)
+	var nz := clampi(int(ceil(rect.size.y / 0.9)), 2, 44)
+	var xf := root.global_transform
+	var base_y := xf.origin.y
+	var verts := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var has_ground := w.has_method("ground_height")
+	for iz in nz + 1:
+		for ix in nx + 1:
+			var u := float(ix) / nx
+			var v := float(iz) / nz
+			var local := Vector3(rect.position.x + u * rect.size.x, 0, rect.position.y + v * rect.size.y)
+			var wp := xf * local
+			var gy := base_y
+			if has_ground:
+				gy = maxf(w.ground_height(wp.x, wp.z), w.water_level(wp.x, wp.z))
+			local.y = gy - base_y + 0.06
+			verts.append(local)
+			uvs.append(Vector2(u, v))
+	var idx := PackedInt32Array()
+	for iz in nz:
+		for ix in nx:
+			var a := iz * (nx + 1) + ix
+			idx.append_array([a, a + 1, a + nx + 1, a + 1, a + nx + 2, a + nx + 1])
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_INDEX] = idx
+	var am := ArrayMesh.new()
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return am
 
 
 static func _shape_tex(key: String) -> Texture2D:

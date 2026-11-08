@@ -71,7 +71,12 @@ func _ready() -> void:
 		var npc := NPC.new()
 		add_child(npc)
 		npc.global_position = Vector3(n["pos"].x, ground_height(n["pos"].x, n["pos"].z), n["pos"].z)
-		npc.rotation.y = n.get("face", 0.0)
+		if n["role"] == "citizen":
+			npc.rotation.y = n.get("face", 0.0)
+		else:
+			# Service NPCs stand facing the plaza / zone centre, where players approach from.
+			var to_c: Vector3 = Vector3.ZERO - npc.global_position
+			npc.rotation.y = atan2(-to_c.x, -to_c.z)
 		npc.setup(n, self)
 		interactables.append({"node": npc, "kind": "npc"})
 	interactables.append({"pos": info["aetheryte"], "kind": "aetheryte", "prompt": "Aetheryte"})
@@ -248,6 +253,38 @@ func water_level(x: float, z: float) -> float:
 			"river":
 				if absf(z - float(w["z"])) < float(w["half"]): return float(w["level"])
 	return -1000.0
+
+
+## Camera position near `desired` with an unobstructed view of `target` (a face).
+## Walls, terrain and the player's body count as blockers; the speaker's own body can be excluded.
+## Tries the requested angle first, then swings around the target, then pulls in closer.
+func clear_shot(target: Vector3, desired: Vector3, exclude: Array = []) -> Vector3:
+	var space := get_world_3d().direct_space_state
+	var off := desired - target
+	var cands: Array = [desired]
+	for deg in [25, -25, 50, -50, 80, -80, 115, -115, 150, -150, 180]:
+		cands.append(target + off.rotated(Vector3.UP, deg_to_rad(deg)))
+	for deg in [0, 40, -40]:
+		cands.append(target + off.rotated(Vector3.UP, deg_to_rad(deg)) * 0.6 + Vector3(0, 0.5, 0))
+	for c in cands:
+		if c.y < ground_height(c.x, c.z) + 0.3: continue
+		if _sight_clear(space, target, c, exclude): return c
+	var q := PhysicsRayQueryParameters3D.create(target, desired, 1 | 2, exclude)
+	var hit := space.intersect_ray(q)
+	if hit.is_empty(): return desired
+	return target.lerp(hit["position"], 0.85)
+
+
+func _sight_clear(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, exclude: Array) -> bool:
+	var q := PhysicsRayQueryParameters3D.create(a, b, 1 | 2, exclude)
+	if not space.intersect_ray(q).is_empty(): return false
+	# The player's capsule is thin; also keep the lens clear of the player's head and shoulders.
+	if player and is_instance_valid(player):
+		var ph := player.global_position + Vector3(0, 1.3 * player.model.scale.y, 0)
+		var seg := b - a
+		var t := clampf((ph - a).dot(seg) / maxf(seg.length_squared(), 0.001), 0.0, 1.0)
+		if (a + seg * t).distance_to(ph) < 0.45 and a.distance_to(ph) > 0.6: return false
+	return true
 
 
 func party_members() -> Array:

@@ -23,6 +23,15 @@ var _blink_t := 2.0
 var _blink := 0.0
 var talking := false
 var _talk_t := 0.0
+var _morph := {}          # VRoid blend shape name -> index
+var _expr := "neutral"
+var _expr_w := {}         # expression -> current weight (blended smoothly)
+var _vis := {}            # viseme vowel -> current weight
+var _vis_target := ""
+var _vis_t := 0.0
+
+const EXPRESSIONS := {"angry": "Fcl_ALL_Angry", "fun": "Fcl_ALL_Fun", "joy": "Fcl_ALL_Joy", "sorrow": "Fcl_ALL_Sorrow", "surprised": "Fcl_ALL_Surprised"}
+const VISEMES := {"a": "Fcl_MTH_A", "i": "Fcl_MTH_I", "u": "Fcl_MTH_U", "e": "Fcl_MTH_E", "o": "Fcl_MTH_O"}
 var current_anim := ""
 var weapon_type := ""
 var drawn := false
@@ -46,6 +55,8 @@ func build(ap: Dictionary, gear := {}) -> void:
 		if mi is MeshInstance3D:
 			if mi.name == "Face":
 				face = mi
+				for i in mi.mesh.get_blend_shape_count():
+					_morph[str(mi.mesh.get_blend_shape_name(i))] = i
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# --- hair
 	var style: int = int(ap.get("hair_style", 1))
@@ -93,6 +104,7 @@ func build(ap: Dictionary, gear := {}) -> void:
 	_hand_l = _socket("J_Bip_L_Hand")
 	_back = _socket("J_Bip_C_UpperChest")
 	if gear.has("weapon"): set_weapon(gear["weapon"], int(gear.get("tier", 0)))
+	if not Settings.changed.is_connected(_place_weapons): Settings.changed.connect(_place_weapons)
 
 
 func _socket(bone: String) -> BoneAttachment3D:
@@ -313,6 +325,13 @@ func _apply_colors(ap: Dictionary) -> void:
 					m.cull_mode = BaseMaterial3D.CULL_DISABLED
 					m.roughness = 0.45
 					m.alpha_antialiasing_mode = BaseMaterial3D.ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE
+			elif "FaceEyeline" in n or "FaceMouth" in n:
+				# Eyelid/eyeline and mouth layers carry painted skin, so they follow the skin tone.
+				var col := skin if not tinted else skin.lerp(Color(ap["tint"]), 0.6)
+				key = "faceskin|%s|%s" % [src.get_rid().get_id(), col.to_html()]
+				setup = func(m: StandardMaterial3D):
+					m.albedo_color = col
+					m.roughness = 0.55
 			elif "EyeIris" in n:
 				key = "iris|%s|%s" % [src.get_rid().get_id(), eye.to_html()]
 				setup = func(m: StandardMaterial3D):
@@ -354,6 +373,8 @@ func set_drawn(v: bool) -> void:
 func _place_weapons() -> void:
 	for w in [weapon_r, weapon_l]:
 		if w and w.get_parent(): w.get_parent().remove_child(w)
+	if not drawn and Settings.v.get("hide_sheathed", false):
+		return  # option: weapons vanish while sheathed and reappear when drawn
 	var bow := weapon_type == "bow"
 	if weapon_r:
 		if drawn:
@@ -406,18 +427,59 @@ func set_far(v: bool) -> void:
 	if anim: anim.speed_scale = 0.0 if v else 1.0
 
 
+## Face expression: neutral, angry, fun, joy, sorrow or surprised. Blends in smoothly.
+func set_expression(e: String) -> void:
+	_expr = e if EXPRESSIONS.has(e) else "neutral"
+
+
+## Mouth shape for the character currently being spoken (vowels map to VRoid visemes).
+func speak_char(ch: String) -> void:
+	var c := ch.to_lower()
+	if VISEMES.has(c): _vis_target = c
+	elif c == "y": _vis_target = "i"
+	elif c == "w": _vis_target = "u"
+	elif c in [" ", ".", ",", "!", "?", ";", ":", "\n"]: _vis_target = ""
+	else: _vis_target = "a" if _vis_target == "" else _vis_target
+	_vis_t = 0.12
+
+
+## Head position in world space (for cameras framing a face).
+func head_pos() -> Vector3:
+	if skel == null: return global_position + Vector3(0, 1.5, 0)
+	var i := skel.find_bone("J_Bip_C_Head")
+	if i < 0: return global_position + Vector3(0, 1.5 * scale.y, 0)
+	return skel.global_transform * (skel.get_bone_global_pose(i).origin + Vector3(0, 0.07, 0))
+
+
+func _set_morph(name: String, w: float) -> void:
+	if _morph.has(name): face.set_blend_shape_value(_morph[name], w)
+
+
 func _process(delta: float) -> void:
 	if face == null or far: return
+	var k := clampf(delta * 8.0, 0.0, 1.0)
+	for e in EXPRESSIONS:
+		var w: float = lerpf(float(_expr_w.get(e, 0.0)), 1.0 if e == _expr else 0.0, k)
+		_expr_w[e] = w
+		_set_morph(EXPRESSIONS[e], w)
+	# Smiles already close the eyes, so skip blinking while one is showing.
 	_blink_t -= delta
 	if _blink_t <= 0.0:
 		_blink = 0.16; _blink_t = randf_range(2.5, 5.5)
+	var blink_w := 0.0
 	if _blink > 0.0:
 		_blink -= delta
-		face.set_blend_shape_value(5, sin(clampf(_blink / 0.16, 0.0, 1.0) * PI))
-	if talking:
-		_talk_t += delta * 11.0
-		face.set_blend_shape_value(6, clampf(sin(_talk_t) * 0.5 + 0.35, 0.0, 0.8))
-	elif _talk_t != 0.0:
-		_talk_t = 0.0; face.set_blend_shape_value(6, 0.0)
+		blink_w = sin(clampf(_blink / 0.16, 0.0, 1.0) * PI) * (1.0 - float(_expr_w.get("joy", 0.0)) - float(_expr_w.get("fun", 0.0)))
+	_set_morph("Fcl_EYE_Close", maxf(blink_w, 0.0))
+	# Visemes: driven by dialogue text when available, otherwise a gentle open/close while talking.
+	_vis_t -= delta
+	var target := _vis_target if _vis_t > 0.0 else ""
+	if talking and _vis_t <= 0.0:
+		_talk_t += delta * 9.0
+		target = ["a", "o", "e", "a", "i", "u"][int(_talk_t) % 6] if fmod(_talk_t, 1.0) < 0.6 else ""
+	for v in VISEMES:
+		var w: float = lerpf(float(_vis.get(v, 0.0)), (0.75 if v == "a" else 0.85) if v == target else 0.0, clampf(delta * 18.0, 0.0, 1.0))
+		_vis[v] = w
+		_set_morph(VISEMES[v], w)
 	if _tail_pivot:
 		_tail_pivot.rotation.y = sin(Time.get_ticks_msec() * 0.0021) * 0.25
