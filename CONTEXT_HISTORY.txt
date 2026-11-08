@@ -414,3 +414,56 @@ Cameras:
   when the speaker changes, a tighter or more dramatic angle when the same speaker continues,
   biased by the line's emotion. Scripts can still request specific shots. Town chats also use a
   different angle each time.
+
+================================================================================
+11. ROUND 6: CHARACTER CREATOR REVAMP (FROM A REFERENCE VIDEO)
+================================================================================
+User request: "Revamp the character creator to closely match what is shown in videos", with a
+Google Drive link to a ~6 minute 1080p60 screen recording of the FFXIV (Dawntrail) character
+creator. The video was downloaded, and still frames were extracted with ffmpeg (one every 2.5 s
+plus full-resolution key frames) to study the layout. No video or audio ships with the game.
+
+What the reference shows, and what was built to match it:
+- Flow: Race & Gender (8 races, each with male/female glyphs, race lore on the left), Clan (two
+  clans, clan lore), Appearance (bulleted feature list on the left with "Randomize Appearance",
+  the selected feature's editor on the right), a summary listing RACE & GENDER / CLAN /
+  APPEARANCE with ??? for unconfirmed steps, then Job (role groups Tank / Healer / DPS that
+  expand to list jobs, job lore, and the starting city-state shown along the bottom-left),
+  Nameday & Guardian, Name, and a confirmation screen. The Warrior of Light NPC is customised
+  with a second pass through the same screens ("Customize the Warrior of Light").
+- Look: a procedural starry blue nebula with a bright aetherial horizon band (sky shader), a
+  glowing rippling platform (floor shader) and drifting motes; thin glowing cyan text,
+  condensed list items with a light streak behind the selection, round confirm/back buttons
+  that show CONFIRM/BACK/CANCEL captions on hover, a large serif heading (Cinzel, lowercase as
+  small capitals) for race/clan/job/deity names, the control-hint pill and CHARACTER CREATION
+  title at the top centre, and the cancel button bottom-left.
+- Bottom bar: POSE (Standing / Unique), ATTIRE (Race / Job / Smallclothes), ENVIRONMENT (five
+  orbs: Aetherial Sea, La Noscea, The Black Shroud, Thanalan, Inn Room) and a time-of-day
+  toggle (Day / Dusk / Night for outdoor scenes).
+- Camera: left-drag rotates the camera, right-drag rotates the background, the wheel zooms,
+  middle-drag tilts; on a gamepad the right stick rotates/tilts, LT/RT zoom, LB/RB change the
+  environment and B goes back. Face features zoom to head and shoulders, as in the video.
+- Editors: vertical sliders with the value, PREVIOUS value and Tall/Short labels (height also
+  shows "Approximately N cm"); colour grids of 8 columns with PREVIOUS/CURRENT RGB readouts
+  (Highlights and Heterochromia add a second grid); option grids of rendered head portraits
+  (an off-screen viewport renders each option once and caches it).
+- Appearance features: Height, Muscle Tone, Bust Size, Tail Length, Face (4 types), Skin Color,
+  Hairstyle, Hair Color (+ highlights), Eye Shape (6), Iris Size (Large/Small), Eye Color
+  (+ heterochromia), Eyebrows (5), Mouth (5), Lip Color, Fangs (5), Ear Length / Horn Size,
+  Scale & Horn Color, Facial Features (freckles, beauty mark, scar, scales, whisker marks),
+  Tattoos (5) + colour, Face Paint (5) + colour, Voice. Features are filtered by race and sex.
+  Jaw and Nose from the reference were left out: the VRoid faces have no morphs for them.
+
+Technical notes:
+- tools/vrm_split.py keeps 17 more VRoid face morphs (eye, brow, mouth and fang shapes). Only
+  the four base_*.gltf/.bin files changed when re-run.
+- CharModel applies the face-shape morphs statically, scales the head per Face type, renders the
+  iris with a small shader (shaders/iris.gdshader) for heterochromia and iris size, and paints
+  lip colour, face paint, tattoos and facial features in a second pass over the face skin
+  (shaders/face_overlay.gdshader) using the standard VRoid face UV layout. No extra textures.
+  Lip colour now actually shows in game (it was stored but never drawn before).
+- New files: scripts/ui/creator_stage.gd (environments, camera, preview, portraits),
+  scripts/ui/creator_ui.gd (widgets), shaders/aether_sky.gdshader, shaders/aether_floor.gdshader,
+  assets/fonts (Barlow Semi Condensed and Cinzel, both SIL Open Font License, licences included).
+- Unused colour lists (LIP_COLORS, FEATURE_COLORS) were removed; palettes are generated.
+- Lore text for races, clans, deities, jobs and cities was written for this game.

@@ -4,7 +4,7 @@ An unofficial fan game set in the world of FINAL FANTASY XIV after Endwalker. It
 
 ## Play
 
-**[Download EorzeaHunter-Windows.zip](https://github.com/CSTestCS/FFXIVHunter2/raw/claude/affectionate-ritchie-g7jiwu/EorzeaHunter-Windows.zip)** (43 MB, one file).
+**[Download EorzeaHunter-Windows.zip](https://github.com/CSTestCS/FFXIVHunter2/raw/claude/affectionate-ritchie-g7jiwu/EorzeaHunter-Windows.zip)** (47 MB, one file).
 
 1. Unzip it anywhere.
 2. Double-click `EorzeaHunter.exe` (Windows 10/11, 64-bit).
@@ -34,7 +34,7 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 
 ## What is in the game
 
-- **Character creation** with all 8 races and 16 clans (Hyur, Elezen, Lalafell, Miqo'te, Roegadyn, Au Ra, Hrothgar, Viera), gender, height, muscle, bust, skin tone, hairstyle, hair colour and highlights, eye and lip colour, ear/horn size, tail length, feature colour, voice, name, nameday and guardian deity. A second editor customises the legendary **Warrior of Light** NPC (appearance, name and job), who appears in cutscenes.
+- **Character creation laid out like FFXIV's own**: Race & Gender, Clan, Appearance, Job and city-state, Nameday & Guardian, and Name, over a starry aetherial sea or four other environments (La Noscea, the Black Shroud, Thanalan, an inn room) with a time-of-day toggle, pose and attire previews, and a free camera. All 8 races and 16 clans, with height, muscle, bust, tail, face type, skin, hairstyle, hair colour and highlights, eye shape, iris size, eye colour and heterochromia, eyebrows, mouth, lip colour, fangs, ear/horn size, scale colour, facial features, tattoos, face paint and voice. Colour grids and portrait grids work as in the original. A second pass customises the legendary **Warrior of Light** NPC (appearance, name and job), who appears in cutscenes.
 - **19 jobs, all available from the start** (PLD, WAR, DRK, GNB, WHM, SCH, AST, SGE, MNK, DRG, NIN, SAM, RPR, BRD, MCH, DNC, BLM, SMN, RDM). Each plays as a distinct weapon type with a light combo chain, heavy branches, charge attacks, a weapon skill, a job gauge and four cooldown job actions (for example, Samurai Sen into Iaijutsu, Gunbreaker cartridges into Gnashing Fang, Dragoon Jump with i-frames, Bard charged Apex Arrow, Black Mage Astral Fire / Umbral Ice).
 - **Your story begins outside the city tied to your job**: Gridania, Limsa Lominsa, Ul'dah or Ishgard (Foundation). You wake on the road, robbed and battered, and a villager brings you into the city. The 22-quest main scenario, in three acts (The Road Back, The Gilded Fangs, The Unsung), keeps you a mere adventurer alongside an original supporting cast: a retired adventurer mentor, a merchant, a rival-turned-friend and an aetherologist. Scions of the Seventh Dawn appear only at turning points (Alphinaud and Alisaie, Y'shtola, and Estinien with the Warrior of Light), and Krile appears in a side quest. 34 cutscenes, with a conversation camera that varies its angles line by line (close-ups, over-the-shoulder, two-shots, profiles, low and high angles) and drifts slowly while characters speak.
 - **21 zones connected as in FFXIV**: the four cities, the Black Shroud (Central, East, South, North), La Noscea (Middle, Lower, Eastern, Western, Upper, Outer), Thanalan (Western, Central, Eastern, Southern, Northern), Coerthas Central Highlands and Mor Dhona, plus the Limsa to Vesper Bay ferry and aetheryte teleports.
@@ -56,6 +56,10 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 - No audio files ship: sounds and ambient music are synthesised once and cached.
 - Graphics presets (Low / Medium / High / Ultra) toggle shadows, SSAO, SSIL, SSR, volumetric fog, skin subsurface scattering, draw distance and grass density.
 
+## Credits
+
+- Fonts: Barlow Semi Condensed and Cinzel, under the SIL Open Font License (see `game/assets/fonts/`).
+
 ## Building from source
 
 - Engine: Godot 4.5.1 stable (Forward+, with automatic fallback to the OpenGL Compatibility renderer). Open `game/` in the editor, or export headless:
@@ -68,5 +72,6 @@ Menus are fully navigable with a gamepad; switch tabs with Z/X or LB/RB.
 
 - Elezen, Lalafell, Roegadyn, Au Ra, Hrothgar and Viera are shaped from the two provided base bodies (Hyur and Miqo'te) with proportion changes and procedural ears, horns and tails. They are approximations until dedicated models are added.
 - Two hairstyles are provided (plus a close crop) and one clothing set, which is tinted per armour tier and dye.
+- The creator has no Jaw or Nose options: the VRoid faces have no shape keys for them.
 - Cities and regions are stylised layouts built around their real landmarks, names and connections. They are not one-to-one copies of the FFXIV maps.
 - The Windows exe was tested under Wine with software Vulkan and OpenGL drivers (both reach the title screen with no errors), and the gameplay test suites ran on the Linux build. It has not been run on real Windows GPU hardware here.

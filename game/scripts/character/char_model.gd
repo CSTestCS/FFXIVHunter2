@@ -32,6 +32,18 @@ var _vis_t := 0.0
 
 const EXPRESSIONS := {"angry": "Fcl_ALL_Angry", "fun": "Fcl_ALL_Fun", "joy": "Fcl_ALL_Joy", "sorrow": "Fcl_ALL_Sorrow", "surprised": "Fcl_ALL_Surprised"}
 const VISEMES := {"a": "Fcl_MTH_A", "i": "Fcl_MTH_I", "u": "Fcl_MTH_U", "e": "Fcl_MTH_E", "o": "Fcl_MTH_O"}
+## Static face-shape morphs chosen in the character creator (index = option in RaceData).
+const FACE_MORPHS := {
+	"eye_shape": [{}, {"Fcl_EYE_Angry": 0.65}, {"Fcl_EYE_Sorrow": 0.6}, {"Fcl_EYE_Surprised": 0.55}, {"Fcl_EYE_Spread": 0.85}, {"Fcl_EYE_Fun": 0.4}],
+	"brows": [{}, {"Fcl_BRW_Angry": 0.65}, {"Fcl_BRW_Surprised": 0.7}, {"Fcl_BRW_Sorrow": 0.65}, {"Fcl_BRW_Fun": 0.7}],
+	"mouth": [{}, {"Fcl_MTH_Small": 0.6}, {"Fcl_MTH_Large": 0.45}, {"Fcl_MTH_Up": 0.5}, {"Fcl_MTH_Down": 0.45}],
+	"fangs": [{}, {"Fcl_MTH_SkinFung": 0.5, "Fcl_HA_Fung1": 1.0}, {"Fcl_MTH_SkinFung": 0.8, "Fcl_HA_Fung1": 1.0},
+		{"Fcl_MTH_SkinFung": 1.0, "Fcl_HA_Fung2": 1.0}, {"Fcl_MTH_SkinFung": 1.0, "Fcl_HA_Fung3": 1.0}],
+}
+## Face types: head width and height.
+const FACE_TYPES := [Vector2(1.0, 1.0), Vector2(0.96, 1.02), Vector2(1.04, 0.98), Vector2(0.98, 0.965)]
+const IRIS_SHADER := preload("res://shaders/iris.gdshader")
+const FACE_OVERLAY := preload("res://shaders/face_overlay.gdshader")
 var current_anim := ""
 var weapon_type := ""
 var drawn := false
@@ -58,6 +70,11 @@ func build(ap: Dictionary, gear := {}) -> void:
 				for i in mi.mesh.get_blend_shape_count():
 					_morph[str(mi.mesh.get_blend_shape_name(i))] = i
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if face:
+		for k in FACE_MORPHS:
+			var opts: Array = FACE_MORPHS[k]
+			for m in opts[clampi(int(ap.get(k, 0)), 0, opts.size() - 1)].keys():
+				_set_morph(m, opts[clampi(int(ap.get(k, 0)), 0, opts.size() - 1)][m])
 	# --- hair
 	var style: int = int(ap.get("hair_style", 1))
 	var hs: Dictionary = RaceData.HAIRSTYLES[clampi(style, 0, RaceData.HAIRSTYLES.size() - 1)]
@@ -262,7 +279,8 @@ func _apply_body_shape(ap: Dictionary) -> void:
 	var m: float = 0.92 + float(ap.get("muscle", 0.5)) * 0.18
 	for b in ["J_Bip_L_UpperArm", "J_Bip_R_UpperArm"]:
 		_bone_scale(b, Vector3(1, m, m))
-	_bone_scale("J_Bip_C_Head", Vector3.ONE * float(clan["head"]))
+	var ft: Vector2 = FACE_TYPES[clampi(int(ap.get("face", 0)), 0, FACE_TYPES.size() - 1)]
+	_bone_scale("J_Bip_C_Head", Vector3(ft.x, ft.y, ft.x) * float(clan["head"]))
 	if ap.get("sex", "f") == "f":
 		var b: float = 0.75 + float(ap.get("bust", 0.5)) * 0.55
 		_bone_scale("J_Sec_L_Bust1", Vector3.ONE * b)
@@ -310,12 +328,15 @@ func _apply_colors(ap: Dictionary) -> void:
 			var setup: Callable
 			if "_SKIN" in n:
 				var col := skin if not tinted else skin.lerp(Color(ap["tint"]), 0.6)
-				key = "skin|%s|%s|%s" % [src.get_rid().get_id(), col.to_html(), sss]
+				var is_face := "Face_00" in n
+				var fkey := _face_key(ap) if is_face else ""
+				key = "skin|%s|%s|%s|%s" % [src.get_rid().get_id(), col.to_html(), sss, fkey]
 				setup = func(m: StandardMaterial3D):
 					m.albedo_color = col
 					m.roughness = 0.55
 					if sss:
 						m.subsurf_scatter_enabled = true; m.subsurf_scatter_strength = 0.18; m.subsurf_scatter_skin_mode = true
+					if is_face: m.next_pass = _face_overlay(ap)
 			elif "_HAIR" in n or "CatEar" in n or "FoxTail" in n:
 				var col := hair
 				if ap.get("highlights", false) and not "HairBack" in n: col = hair.lerp(hl, 0.35)
@@ -333,15 +354,47 @@ func _apply_colors(ap: Dictionary) -> void:
 					m.albedo_color = col
 					m.roughness = 0.55
 			elif "EyeIris" in n:
-				key = "iris|%s|%s" % [src.get_rid().get_id(), eye.to_html()]
-				setup = func(m: StandardMaterial3D):
-					m.albedo_color = eye
-					m.roughness = 0.1
+				var eye2 := Color(ap.get("eye_color2", "#2f7a4a")) if ap.get("heterochromia", false) else eye
+				var iscale := float(RaceData.IRIS_SIZES[clampi(int(ap.get("iris", 0)), 0, RaceData.IRIS_SIZES.size() - 1)][1])
+				var ikey := "iris|%s|%s|%s|%s" % [src.get_rid().get_id(), eye.to_html(), eye2.to_html(), iscale]
+				mi.set_surface_override_material(i, _iris_mat(ikey, src, eye, eye2, iscale))
+				continue
 			elif "Brow" in n:
 				key = "brow|%s|%s" % [src.get_rid().get_id(), hair.to_html()]
 				setup = func(m: StandardMaterial3D): m.albedo_color = hair.lightened(0.25)
 			if key != "":
 				mi.set_surface_override_material(i, _cached(key, src, setup))
+
+
+func _iris_mat(key: String, src: Material, a: Color, b: Color, s: float) -> Material:
+	if _mat_cache.has(key): return _mat_cache[key]
+	var m := ShaderMaterial.new()
+	m.shader = IRIS_SHADER
+	m.set_shader_parameter("tex", (src as StandardMaterial3D).albedo_texture)
+	m.set_shader_parameter("col_a", a); m.set_shader_parameter("col_b", b)
+	m.set_shader_parameter("iris_scale", s)
+	_mat_cache[key] = m
+	return m
+
+
+static func _face_key(ap: Dictionary) -> String:
+	return "%s|%s|%s|%s|%s|%s|%s" % [ap.get("lip_color", ""), ap.get("face_paint", 0), ap.get("paint_color", ""),
+		ap.get("tattoo", 0), ap.get("tattoo_color", ""), ap.get("facial_feature", 0), ap.get("feature_color", "")]
+
+
+## Lip colour, face paint, tattoos and facial features, painted over the face skin.
+static func _face_overlay(ap: Dictionary) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = FACE_OVERLAY
+	m.render_priority = 1
+	m.set_shader_parameter("lip_color", Color(ap.get("lip_color", "#b86a6a")))
+	m.set_shader_parameter("paint", int(ap.get("face_paint", 0)))
+	m.set_shader_parameter("paint_color", Color(ap.get("paint_color", "#8a1a1a")))
+	m.set_shader_parameter("tattoo", int(ap.get("tattoo", 0)))
+	m.set_shader_parameter("tattoo_color", Color(ap.get("tattoo_color", "#24304a")))
+	m.set_shader_parameter("feature", int(ap.get("facial_feature", 0)))
+	m.set_shader_parameter("feature_color", Color(ap.get("feature_color", "#ffffff")))
+	return m
 
 
 static func _all_meshes(n: Node) -> Array:

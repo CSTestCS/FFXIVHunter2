@@ -19,9 +19,14 @@ import numpy as np
 from PIL import Image
 
 MAX_TEX = 1024
-# VRoid expressions (emotions), blink and the five vowel visemes used for lip movement.
+# VRoid expressions (emotions), blink and the five vowel visemes used for lip movement, plus the
+# brow, eye, mouth and fang shapes the character creator uses as static face features.
 KEEP_MORPHS = ['Fcl_ALL_Neutral', 'Fcl_ALL_Angry', 'Fcl_ALL_Fun', 'Fcl_ALL_Joy', 'Fcl_ALL_Sorrow', 'Fcl_ALL_Surprised',
-               'Fcl_EYE_Close', 'Fcl_MTH_A', 'Fcl_MTH_I', 'Fcl_MTH_U', 'Fcl_MTH_E', 'Fcl_MTH_O']
+               'Fcl_EYE_Close', 'Fcl_MTH_A', 'Fcl_MTH_I', 'Fcl_MTH_U', 'Fcl_MTH_E', 'Fcl_MTH_O',
+               'Fcl_BRW_Angry', 'Fcl_BRW_Sorrow', 'Fcl_BRW_Surprised', 'Fcl_BRW_Fun',
+               'Fcl_EYE_Angry', 'Fcl_EYE_Sorrow', 'Fcl_EYE_Surprised', 'Fcl_EYE_Spread', 'Fcl_EYE_Fun',
+               'Fcl_MTH_Small', 'Fcl_MTH_Large', 'Fcl_MTH_Up', 'Fcl_MTH_Down',
+               'Fcl_MTH_SkinFung', 'Fcl_HA_Fung1', 'Fcl_HA_Fung2', 'Fcl_HA_Fung3']
 COMP = {5120: np.int8, 5121: np.uint8, 5122: np.int16, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
 NCOMP = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4, 'MAT4': 16}
 
