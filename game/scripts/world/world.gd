@@ -258,32 +258,44 @@ func water_level(x: float, z: float) -> float:
 ## Camera position near `desired` with an unobstructed view of `target` (a face).
 ## Walls, terrain and the player's body count as blockers; the speaker's own body can be excluded.
 ## Tries the requested angle first, then swings around the target, then pulls in closer.
-func clear_shot(target: Vector3, desired: Vector3, exclude: Array = []) -> Vector3:
+## Characters that may block a conversation shot (the player plus anyone on stage in a scene).
+var shot_blockers: Array = []
+
+
+func clear_shot(target: Vector3, desired: Vector3, exclude: Array = [], allowed: Array = []) -> Vector3:
 	var space := get_world_3d().direct_space_state
 	var off := desired - target
 	var cands: Array = [desired]
-	for deg in [25, -25, 50, -50, 80, -80, 115, -115, 150, -150, 180]:
+	# Swing around the subject, but never behind them: a conversation shot must see the face.
+	for deg in [20, -20, 40, -40, 65, -65, 90, -90]:
 		cands.append(target + off.rotated(Vector3.UP, deg_to_rad(deg)))
-	for deg in [0, 40, -40]:
-		cands.append(target + off.rotated(Vector3.UP, deg_to_rad(deg)) * 0.6 + Vector3(0, 0.5, 0))
+	for deg in [0, 30, -30, 60, -60]:
+		cands.append(target + off.rotated(Vector3.UP, deg_to_rad(deg)) * 0.65 + Vector3(0, 0.55, 0))
 	for c in cands:
 		if c.y < ground_height(c.x, c.z) + 0.3: continue
-		if _sight_clear(space, target, c, exclude): return c
+		if _sight_clear(space, target, c, exclude, allowed): return c
 	var q := PhysicsRayQueryParameters3D.create(target, desired, 1 | 2, exclude)
 	var hit := space.intersect_ray(q)
 	if hit.is_empty(): return desired
 	return target.lerp(hit["position"], 0.85)
 
 
-func _sight_clear(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, exclude: Array) -> bool:
+func _sight_clear(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, exclude: Array, allowed: Array = []) -> bool:
 	var q := PhysicsRayQueryParameters3D.create(a, b, 1 | 2, exclude)
 	if not space.intersect_ray(q).is_empty(): return false
-	# The player's capsule is thin; also keep the lens clear of the player's head and shoulders.
-	if player and is_instance_valid(player):
-		var ph := player.global_position + Vector3(0, 1.3 * player.model.scale.y, 0)
-		var seg := b - a
+	# Characters have thin or no colliders, so also keep the lens clear of their heads and
+	# shoulders, except characters the shot deliberately includes (e.g. the shoulder in an
+	# over-the-shoulder shot).
+	var people: Array = shot_blockers.duplicate()
+	if player and is_instance_valid(player) and not people.has(player.model): people.append(player.model)
+	var seg := b - a
+	for m in people:
+		if not is_instance_valid(m) or allowed.has(m) or not m.is_visible_in_tree(): continue
+		var ph: Vector3 = m.head_pos() - Vector3(0, 0.2 * m.scale.y, 0)
+		if a.distance_to(ph) < 0.7: continue   # the person being framed
+		if b.distance_to(ph) < 0.75: return false   # someone right in front of the lens
 		var t := clampf((ph - a).dot(seg) / maxf(seg.length_squared(), 0.001), 0.0, 1.0)
-		if (a + seg * t).distance_to(ph) < 0.45 and a.distance_to(ph) > 0.6: return false
+		if (a + seg * t).distance_to(ph) < 0.42 * maxf(m.scale.y, 0.6): return false
 	return true
 
 

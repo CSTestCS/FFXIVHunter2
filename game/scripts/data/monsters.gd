@@ -52,6 +52,8 @@ static func all() -> Dictionary:
 			"drops": {"iron_ore": 0.3, "materia_shard": 0.05}, "gil": 40, "attacks": [a("Slash Combo", "combo", 0.6, 1.0, 2.2, {"hits": 2}), a("Overhead Chop", "cone", 1.0, 1.6, 2.6, {"arc": 50.0, "anim": "slam"})]},
 		"bandit_archer": {"name": "Bandit Archer", "body": "humanoid", "size": 1.0, "col": "#4a5a3a", "col2": "#6a3a20", "ranged": true, "hp": 170, "atk": 12, "lvl": 4, "speed": 4.5,
 			"drops": {"beast_hide": 0.3}, "gil": 40, "attacks": [a("Arrow", "proj", 0.9, 1.1, 22.0, {"anim": "spit", "color": "#e0d0b0"}), a("Volley", "circle", 1.6, 1.3, 4.0, {"target": true, "anim": "roar"})]},
+		"cultist": {"name": "Unsung Zealot", "body": "humanoid", "size": 1.0, "col": "#3a2a4a", "col2": "#2a2030", "ranged": true, "weapon": "rod", "hp": 230, "atk": 14, "lvl": 12, "speed": 4.5,
+			"drops": {"materia_shard": 0.15, "ice_shard": 0.5}, "gil": 60, "attacks": [a("Hymn of Sorrow", "proj", 1.0, 1.2, 20.0, {"anim": "spit", "color": "#9a60ff", "aoe": 2.0}), a("Lament", "circle", 1.6, 1.5, 3.5, {"target": true, "anim": "roar"})]},
 		# ---------------- LARGE MONSTERS (Hunts)
 		"coeurl": {"name": "Thunderclap Coeurl", "large": true, "body": "quad", "size": 2.6, "col": "#d8a850", "col2": "#3a2a1a", "whiskers": true, "spots": true, "hp": 4200, "atk": 26, "lvl": 10, "speed": 8.5,
 			"drops": {"coeurl_fur": 1.0, "iron_ore": 0.7, "materia_shard": 0.6}, "break": {"part": "whiskers", "drop": "coeurl_fur"}, "attacks": [

@@ -103,6 +103,9 @@ func refresh_marker() -> void:
 			if quest_id != "" and not quest_id in Game.state.get("quests_done", []): m = "!"
 		"leves":
 			m = "?" if Game.flag("leves") else ""
+		"story":
+			var q := Game.current_msq()
+			if not q.is_empty() and q["kind"] == "talk" and q.get("talk", "") == cast_id: m = "!"
 	marker.text = m
 	marker.modulate = Color("#ffd860") if m == "!" else Color("#80d0ff")
 
@@ -113,6 +116,9 @@ func prompt() -> String:
 
 
 func line() -> String:
+	if StoryData.CAST_LINES.has(cast_id):
+		var cl: Array = StoryData.CAST_LINES[cast_id]
+		return cl[abs(hash(str(Time.get_ticks_msec() / 6000))) % cl.size()]
 	return LINES[abs(hash(npc_name + str(Time.get_ticks_msec() / 8000))) % LINES.size()]
 
 

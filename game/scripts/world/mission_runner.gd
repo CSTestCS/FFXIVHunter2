@@ -308,7 +308,7 @@ func _spawn_wave() -> void:
 	var mob: String = q.get("mob", "")
 	var pool: Array = []
 	if mob != "": pool = [mob]
-	elif q.get("id", "") in ["msq6"]: pool = ["bandit", "bandit", "bandit_archer"]
+	elif q.has("pool"): pool = q["pool"]
 	else:
 		for m in world.zd.get("mobs", []): pool.append(m[0])
 	world.toast_small("Wave %d incoming!" % wave)

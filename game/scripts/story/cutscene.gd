@@ -11,6 +11,13 @@ var actors := {}
 var anchor := Transform3D()
 var skipping := false
 var _hidden: Array = []   # standing NPCs hidden while their scripted double is on stage
+var _names := {}          # actor id -> display name for unnamed extras
+# Conversation director state
+var _hold_cam := false    # an explicit camera command frames the next line
+var _last_speaker: CharModel
+var _last_shot := ""
+var _shot_n := 0
+var _cam_tw: Tween
 var _flash: ColorRect
 var _title: Label
 var _title_sub: Label
@@ -56,6 +63,10 @@ func play_cmds(cmds: Array) -> void:
 	p.model.set_drawn(false)
 	p.lock_target = null
 	anchor = Transform3D(Basis(Vector3.UP, p.rotation.y), p.global_position)
+	_hold_cam = false
+	_last_speaker = null
+	_last_shot = ""
+	_names.clear()
 	cam.global_transform = p.camera.global_transform
 	cam.fov = p.camera.fov
 	cam.current = true
@@ -87,6 +98,8 @@ func _face_model(look: Vector3, spec) -> CharModel:
 
 
 func _finish() -> void:
+	if _cam_tw: _cam_tw.kill()
+	world.shot_blockers.clear()
 	world.player.model.set_expression("neutral")
 	for n in _hidden:
 		if is_instance_valid(n): n.visible = true
@@ -149,7 +162,7 @@ func _speaker(who: String) -> Array:
 		"wol":
 			return [Game.state["wol"].get("name", "Warrior of Light"), actors.get("wol")]
 	if StoryData.CAST.has(who): return [StoryData.CAST[who]["name"], actors.get(who)]
-	if actors.has(who): return [who.capitalize(), actors[who]]
+	if actors.has(who): return [_names.get(who, who.capitalize()), actors[who]]
 	return [Game.fmt(who), null]
 
 
@@ -179,21 +192,23 @@ func _spawn(c: Dictionary) -> void:
 				var vl: Array = ZoneData.STARTS[Game.city()]["villager_look"]
 				ap = RaceData.default_appearance(vl[0], vl[1], vl[2]); ap["hair_style"] = 1; ap["hair_color"] = "#6b4a32"
 			"<gm>":
-				for it in world.interactables:
-					var nn = it.get("node")
-					if nn is NPC and nn.role == "guildmaster":
-						nn.visible = false; _hidden.append(nn)
+				_hide_standing(StoryData.GUILDS[Game.city()]["gm"])
 				var gm: String = StoryData.GUILDS[Game.city()]["gm"]
 				ap = Data.cast_appearance(gm); job = StoryData.CAST[gm]["look"][6]
 				gear["dyes"] = {"body": ap["dye_top"], "legs": ap["dye_bottom"]}; gear["armor"] = {"body": 2, "legs": 1, "feet": 1}
 			"wol":
 				ap = Game.state["wol"]["appearance"]; job = Game.state["wol"].get("job", "PLD")
 				gear = {"armor": {"body": 6, "legs": 6, "feet": 6}, "dyes": {"body": "#e8e4f0", "legs": "#3a3a4a", "feet": "#2a2a30"}, "tier": 6}
+			"zealot":
+				ap = NPC.random_look(randi())
+				gear = {"armor": {"body": 1, "legs": 1, "feet": 1, "head": 1}, "dyes": {"body": "#3a2a4a", "legs": "#2a2030", "head": "#3a2a4a"}}
+				job = "BLM"
 			"bandit", "guard":
 				ap = NPC.random_look(randi())
 				gear = {"armor": {"body": 1 if look == "bandit" else 3, "legs": 1, "feet": 1}, "dyes": {"body": "#5a3a2a" if look == "bandit" else ""}}
 				job = "WAR" if look == "bandit" else "PLD"
 			_:
+				_hide_standing(look)
 				ap = Data.cast_appearance(look); job = StoryData.CAST[look]["look"][6]
 				gear = {"armor": {"body": 4, "legs": 4, "feet": 4}, "dyes": {"body": ap["dye_top"], "legs": ap["dye_bottom"], "feet": "#202020"}}
 		if job != "" and c.get("weapon", false):
@@ -207,8 +222,47 @@ func _spawn(c: Dictionary) -> void:
 	n.global_position = pos
 	if c.has("scale"): n.scale *= float(c["scale"])
 	actors[c["id"]] = n
+	if c.has("name"): _names[c["id"]] = c["name"]
 	_face(n, c.get("face", "player"))
 	if n is CharModel: n.play("idle_combat" if c.get("weapon", false) else "idle", 0.0)
+
+
+func _hide_standing(cast_id: String) -> void:
+	for it in world.interactables:
+		var nn = it.get("node")
+		if nn is NPC and nn.cast_id == cast_id and nn.visible:
+			nn.visible = false; _hidden.append(nn)
+
+
+## Frames `speaker` with a conversation shot and starts its slow drift.
+func _frame(type: String, speaker: CharModel, listener: CharModel) -> void:
+	if speaker == null or not is_instance_valid(speaker): return
+	var side := 1.0 if (speaker.get_instance_id() + (listener.get_instance_id() if listener else 0)) % 2 == 0 else -1.0
+	# Keep the same screen side for a pair regardless of who speaks (180-degree rule).
+	if listener and listener.get_instance_id() < speaker.get_instance_id(): side = -side
+	world.shot_blockers.clear()
+	for k in actors:
+		if actors[k] is CharModel and is_instance_valid(actors[k]): world.shot_blockers.append(actors[k])
+	var s := CamShots.make(type, speaker, listener, side, world)
+	if _cam_tw: _cam_tw.kill()
+	cam.global_transform = s["from"]
+	cam.fov = s["fov_from"]
+	if skipping: return
+	_cam_tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_cam_tw.tween_property(cam, "global_transform", s["to"], 5.0)
+	_cam_tw.parallel().tween_property(cam, "fov", s["fov_to"], 5.0)
+	_last_shot = type
+
+
+func _listener_for(speaker: CharModel, spec) -> CharModel:
+	if spec is String and spec != "":
+		var m = _model(spec)
+		if m is CharModel: return m
+	if speaker != world.player.model: return world.player.model
+	if _last_speaker and is_instance_valid(_last_speaker) and _last_speaker != speaker: return _last_speaker
+	for k in actors:
+		if actors[k] is CharModel and is_instance_valid(actors[k]): return actors[k]
+	return null
 
 
 func _meshes(n: Node) -> Array:
@@ -281,7 +335,14 @@ func _run(c: Dictionary) -> void:
 			var n = _model(c["id"])
 			if n is CharModel: n.play(c["anim"], 0.2)
 			elif n and n.has_meta("rig"): _rig_roar(n)
+		"shot":
+			var sm = _model(c["on"])
+			if sm is CharModel:
+				_frame(c["type"], sm, _listener_for(sm, c.get("with", "")))
+				_hold_cam = true
 		"cam":
+			_hold_cam = true
+			if _cam_tw: _cam_tw.kill()
 			var pos := _rel(c["pos"])
 			var look := _rel(c["look"]) if c["look"] is Array else _actor_pos(c["look"])
 			# Frame the real face: if the shot aims near a character, retarget to their head and
@@ -311,6 +372,14 @@ func _run(c: Dictionary) -> void:
 			var sp := _speaker(c["who"])
 			var m = sp[1]
 			if m is CharModel and c.has("expr"): m.set_expression(c["expr"])
+			# Director: every line after the first gets its own angle unless the script framed it.
+			if m is CharModel and not _hold_cam:
+				var t: String = c.get("shot", CamShots.pick(m != _last_speaker, c.get("expr", ""), _shot_n, _last_shot))
+				_frame(t, m, _listener_for(m, c.get("to", "")))
+			_hold_cam = false
+			if m is CharModel:
+				_last_speaker = m
+				_shot_n += 1
 			await world.dialogue.say(sp[0], Game.fmt(c["text"]), m if m is CharModel else null)
 			if not is_instance_valid(self): return
 		"wait":

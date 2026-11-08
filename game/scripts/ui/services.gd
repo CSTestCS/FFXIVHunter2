@@ -9,6 +9,7 @@ var title: Label
 var body: Label
 var list: VBoxContainer
 var _open := false
+var _talk_n := 0
 
 
 func setup(w: Node) -> void:
@@ -85,6 +86,7 @@ func talk(npc: NPC) -> void:
 		"market": _market()
 		"trainer": _trainer()
 		"side": _side(npc)
+		"story": _story(npc)
 		"ferry": _ferry()
 		_: _chat(npc)
 
@@ -109,28 +111,24 @@ func _chat(npc: NPC) -> void:
 ## Over-the-shoulder camera aimed at the NPC's actual face.
 func _talk_camera(npc: NPC) -> Camera3D:
 	var p: Player = world.player
-	var head := npc.model.head_pos()
 	var to_p := p.global_position - npc.global_position
 	to_p.y = 0
 	if to_p.length() < 0.1: to_p = -npc.global_transform.basis.z
 	npc.rotation.y = atan2(to_p.x, to_p.z) + PI
-	var side := Vector3(-to_p.z, 0, to_p.x).normalized()
-	var pos := head + to_p.normalized() * 1.7 + side * 0.45 + Vector3(0, 0.08, 0)
-	pos.y = maxf(pos.y, world.ground_height(pos.x, pos.z) + 0.4)
-	pos = world.clear_shot(head, pos, [npc.get_rid()])
+	p.rotation.y = atan2(to_p.x, to_p.z)
+	# A different conversational angle each chat, drifting gently while they speak.
+	_talk_n += 1
+	var type: String = ["closeup", "ots", "low", "profile", "two", "high"][(_talk_n * 5 + randi() % 3) % 6]
+	var shot := CamShots.make(type, npc.model, p.model, 1.0 if randf() < 0.5 else -1.0, world)
 	var cam := Camera3D.new()
-	cam.fov = 40.0
 	world.add_child(cam)
-	cam.global_transform = Transform3D(Basis(), pos).looking_at(head, Vector3.UP)
+	cam.global_transform = shot["from"]
+	cam.fov = shot["fov_from"]
 	cam.current = true
+	var tw := cam.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(cam, "global_transform", shot["to"], 5.0)
+	tw.parallel().tween_property(cam, "fov", shot["fov_to"], 5.0)
 	return cam
-
-
-func _intro_in_town(cs: String) -> bool:
-	if cs == "" or not Data.cutscenes.has(cs): return false
-	for c in Data.cutscenes[cs]:
-		if c["cmd"] == "spawn" and c["id"] == "gm": return true
-	return false
 
 
 ## Places the player two steps in front of an NPC, facing them, so scripted scenes
@@ -147,23 +145,34 @@ func _stage_at(npc: NPC) -> void:
 	p.rotation.y = atan2(fwd.x, fwd.z)
 
 
+## Supporting-cast NPCs: completes a story "talk" step aimed at them, otherwise small talk.
+func _story(npc: NPC) -> void:
+	if not await _try_talk_step(npc): _chat(npc)
+
+
+## If the current main-story step is "talk to this character", plays its scene and completes it.
+func _try_talk_step(npc: NPC) -> bool:
+	var q := Game.current_msq()
+	if q.is_empty() or q["kind"] != "talk" or q.get("talk", "") != npc.cast_id: return false
+	var outro: String = q.get("outro", "")
+	var rew := Game.complete_msq()
+	if outro != "":
+		_stage_at(npc)
+		await world.cutscene.play(outro)
+	world.hud.banner("QUEST COMPLETE", q["name"] + "\n" + rew)
+	return true
+
+
 func _guild(npc: NPC) -> void:
 	var q := Game.current_msq()
 	var gm: String = StoryData.GUILDS[Game.city()]["gm"]
 	var home = world.zone_id == Game.city()
-	if not q.is_empty() and q["kind"] == "talk" and q.get("talk", "") == npc.cast_id:
-		var outro: String = q.get("outro", "")
-		var rew := Game.complete_msq()
-		if outro != "":
-			_stage_at(npc)
-			await world.cutscene.play(outro)
-		world.hud.banner("QUEST COMPLETE", q["name"] + "\n" + rew)
-		return
+	if await _try_talk_step(npc): return
 	if not q.is_empty() and q["kind"] != "talk" and home:
 		_show(q["name"], "%s\n\nRecommended level %d.  Remember to eat before you depart!" % [q["desc"], int(q.get("lvl", 1))])
 		_add("Depart for %s" % Data.zones[q["zone"]]["name"], func():
 			close()
-			if _intro_in_town(q.get("intro", "")):
+			if q.get("intro_town", false) and q.get("intro", "") != "":
 				_stage_at(npc)
 				await world.cutscene.play(q["intro"])
 				var qq := q.duplicate(); qq["intro"] = ""
@@ -176,7 +185,9 @@ func _guild(npc: NPC) -> void:
 	if q.is_empty() or Game.flag("story_complete"):
 		_show(StoryData.CAST[gm]["name"], "Back again? The board's full and the roads are long. Take a leve, or see the recruiter if you want company out there.")
 	else:
-		_show(StoryData.CAST[gm]["name"], "Your next task: %s\n\n%s" % [q["name"], q["desc"]])
+		var who := ""
+		if q["kind"] == "talk" and StoryData.CAST.has(q.get("talk", "")): who = "\n\nSpeak with %s in %s." % [StoryData.CAST[q["talk"]]["name"], Data.zones[Game.city()]["name"]]
+		_show(StoryData.CAST[gm]["name"], "Your next task: %s\n\n%s%s" % [q["name"], q["desc"], who])
 	_finish_list()
 
 
@@ -205,7 +216,7 @@ func _meal_text() -> String:
 
 
 func _recruiter() -> void:
-	if Game.msq_index() < 3:
+	if Game.msq_index() < 6:   # after "The Long Road"
 		_show("Party Recruiter", "Adventurers here only team up with those the guild trusts. Prove yourself on the road first.")
 		_finish_list(); return
 	var party: Array = Game.state["party"]

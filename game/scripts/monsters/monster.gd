@@ -64,7 +64,7 @@ func setup(species: String, lvl: int, w: Node) -> void:
 		ap["hair_style"] = randi() % 3
 		ap["hair_color"] = RaceData.HAIR_COLORS[randi() % 8]
 		ap["skin"] = RaceData.CLANS[ap["clan"]]["skin"][randi() % 3]
-		var wpn = "bow" if d.get("ranged", false) else ("greataxe" if large else ["sword_shield", "daggers", "greatsword"][randi() % 3])
+		var wpn = d["weapon"] if d.has("weapon") else "bow" if d.get("ranged", false) else ("greataxe" if large else ["sword_shield", "daggers", "greatsword"][randi() % 3])
 		model.build(ap, {"armor": {"body": 1, "legs": 1, "feet": 1, "head": 1 if randf() < 0.5 else -1}, "dyes": {"body": d["col"], "legs": d["col2"], "head": d["col2"]}, "weapon": wpn, "tier": 1 if large else 0})
 		model.set_drawn(true)
 		model.play("idle_combat")

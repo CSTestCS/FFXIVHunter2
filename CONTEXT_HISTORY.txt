@@ -374,3 +374,43 @@ Verification:
   inventory, hidden sheathed weapons, and markers draped over a hillside and lake surface.
 - Headless suites: 19/19 jobs, 20/20 missions, 12/12 cutscenes pass.
 - Windows exe under Wine boots to the title screen on Vulkan and OpenGL with no errors.
+
+---------------------------------------------------------
+10. ROUND 5: LONGER STORY, RARER CAMEOS, DYNAMIC CAMERAS
+---------------------------------------------------------
+User message (verbatim):
+"Make the main story significantly longer with Scion cameos more rare and many more cutscenes.
+Make conversation camera angles more varied and dynamic."
+
+Story (main scenario grew from 9 to 22 quests, cutscenes from 12 to 34, dialogue from 47 to 124 lines):
+- Act I, The Road Back: A Rude Awakening; Leves and Lessons; An Old Hand (meet Orrik Stonebrow,
+  a retired Sea Wolf adventurer); Highway Robbery (rival Ferrant Duvalle steals the moment);
+  The Merchant's Daughter (Ysolde Marchant); The Long Road (escort her caravan); A Rival's Wager
+  (culling contest with Ferrant); A Beast Out of Season (aetherologist Tatale Ratale finds a
+  despair-tainted crystal in the beast).
+- Act II, The Gilded Fangs: A Crystal Riddle; Fangs Bared (defense with Orrik); Smoke on the
+  Horizon (refugee escort, Alphinaud and Alisaie cameo); Paper Trails (Fang ledgers); Ferrant's
+  Folly (save Ferrant from a crystal-fed coeurl; rival becomes friend); Gerolt the Grasping.
+- Act III, The Unsung: Songs Unsung (a cult that mourns the Final Days and wants to "finish the
+  song" of despair); Shards of Sorrow (Mor Dhona, Y'shtola cameo); The Hollow Choir (defense;
+  Hierophant Ancel appears); An Old Wound (Orrik injured); The Last Hymn (crystal-twisted
+  wyvern); Echoes of the Final Days (the Warrior of Light and Estinien end the rite while you
+  hold Camp Dragonhead); Ashes and Embers; Just an Adventurer.
+- Scion cameos in the main story reduced to three turning points (the twins, Y'shtola, and the
+  Warrior of Light with Estinien). Thancred, Urianger and G'raha Tia scenes were removed.
+- New original cast (lore-friendly, not from FFXIV): Orrik Stonebrow, Ysolde Marchant, Ferrant
+  Duvalle, Tatale Ratale, Gerolt the Grasping, Hierophant Ancel of the Unsung. Orrik, Ysolde and
+  Tatale stand in the home city, carry quest markers when the story needs them, and have their
+  own small talk. New enemy: Unsung Zealot (robed caster).
+- Story "talk" steps now work with any cast member; scenes are staged where that character
+  stands; quests can play their intro in town before departing; defense missions take enemy
+  pools from quest data. Party recruitment now opens after "The Long Road".
+
+Cameras:
+- New conversation director (CamShots): close-up, over-the-shoulder, two-shot, profile, low
+  (heroic) angle, high angle and wide shots, framed on the speaker's real head, keeping a pair
+  of characters on consistent screen sides, avoiding walls, and drifting slowly (push-ins,
+  slides, arcs) while each line plays. Each new line picks a different shot: a reverse angle
+  when the speaker changes, a tighter or more dramatic angle when the same speaker continues,
+  biased by the line's emotion. Scripts can still request specific shots. Town chats also use a
+  different angle each time.

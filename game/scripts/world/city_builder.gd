@@ -112,6 +112,9 @@ static func build(zone_id: String) -> Dictionary:
 		info["npcs"].append({"role": "ferry", "pos": Vector3(-WALL + 8, gy, 50), "face": PI * 0.5, "name": "Ferry Skipper"})
 		bt.box(Vector3(-WALL - 4, gy - 0.4, 50), Vector3(16, 0.8, 5), "wood", wood_m)
 		ZoneBuilder._sign(root, Vector3(-WALL + 6, gy + 3.5, 50), zd["ferry"]["name"], 22)
+	# Supporting cast of the main story wait near the guild and plaza.
+	for sc in [["orrik", Vector3(-9, gy, -21)], ["ysolde", Vector3(15, gy, 18)], ["tatale", Vector3(-15, gy, -12)]]:
+		info["npcs"].append({"role": "story", "pos": sc[1], "face": 0.0, "cast": sc[0]})
 	for i in 8:
 		var a := i * TAU / 8.0 + 0.3
 		info["npcs"].append({"role": "citizen", "pos": Vector3(cos(a) * 26.0, gy, sin(a) * 26.0 + 6.0), "face": -a})
