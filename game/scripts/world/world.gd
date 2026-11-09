@@ -253,6 +253,13 @@ func water_level(x: float, z: float) -> float:
 				if Vector2(x, z).distance_to(w["center"]) < float(w["radius"]): return float(w["level"])
 			"river":
 				if absf(z - float(w["z"])) < float(w["half"]): return float(w["level"])
+			"stream":
+				var pts: Array = w["pts"]
+				var p2 := Vector2(x, z)
+				for i in pts.size() - 1:
+					var a: Vector2 = pts[i]; var ab: Vector2 = pts[i + 1] - a
+					var t := clampf((p2 - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+					if p2.distance_to(a + ab * t) < lerpf(w["half"][i], w["half"][i + 1], t): return float(w["level"])
 	return -1000.0
 
 
