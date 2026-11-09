@@ -55,6 +55,18 @@ void fragment() {
 		c = mix(tint, tint2, pick);
 		c = mix(c, tint3, smoothstep(0.82, 1.0, pick) * 0.6);
 		shade = mix(0.75, 1.05, 1.0 - best) * mix(0.85, 1.0, smoothstep(0.0, 0.15, vein));
+	} else if (mode == 2) {
+		// Blossoms: five-petalled flowers on a jittered grid, with pale centres.
+		vec2 g = UV * 2.5;
+		vec2 cell = floor(g);
+		vec2 f = fract(g) - 0.5 - (vec2(hash12(cell), hash12(cell + 4.3)) - 0.5) * 0.3;
+		float r = length(f);
+		float a = atan(f.y, f.x) + hash12(cell + 1.9) * 6.2832;
+		float petal = 0.32 + 0.12 * cos(a * 5.0);
+		if (r > petal || length(UV - 0.5) > 0.55) discard;
+		c = mix(tint, tint2, smoothstep(0.0, petal, r) * hash12(cell + 7.7));
+		c = mix(tint3, c, smoothstep(0.05, 0.11, r));
+		shade = mix(1.05, 0.8, r / petal);
 	} else {
 		// Fern frond: a central stem with tapering leaflets along UV.y.
 		float y = UV.y;

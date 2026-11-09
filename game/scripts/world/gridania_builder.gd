@@ -1,29 +1,41 @@
 class_name GridaniaBuilder
-## Gridania, the forest city of the Black Shroud, as one continuous place. A wooded ridge divides
-## New Gridania (the lower, southern half: the Aetheryte Plaza, the Carline Canopy and the Roost,
-## the Knot, the Adders' Nest, the Archers' Guild, Acorn Orchard, Apkallu Falls and the Blue
-## Badger Gate) from Old Gridania (the higher, northern half: the Lotus Stand over its pool,
-## Stillglade Fane on its island, the Lancers', Leatherworkers' and Botanists' guilds, Mih Khetto's
-## Amphitheatre and the White Wolf Gate). Three stone-vaulted tunnels run through the ridge.
-## Landmark names and their district placement follow the lore; the layout itself is this game's.
+## Gridania, the forest city of the Black Shroud, as one continuous place set in a cliff-ringed
+## basin of the Twelveswood. A wooded ridge divides New Gridania (lower, south) from Old Gridania
+## (higher, north); three stone-vaulted tunnels run through it.
+## New Gridania: the Aetheryte Plaza on its raised terrace; the Carline Canopy at the foot of the
+## eastern cliff, with stairs climbing to the Airship Landing on the cliff shelf above; the Adders'
+## Nest; the marketplace by the stream; the Knot across the water; the Archers' Guild; Acorn
+## Orchard; Apkallu Falls; the Blue Badger Gate.
+## Old Gridania: the square; the Leatherworkers' Guild on its boardwalk; the Lancers' Guild on a
+## raised terrace; Mih Khetto's Amphitheatre; the Lotus Stand over its pool beneath a great tree;
+## Stillglade Fane on its island; the Botanists' Guild and its gardens; the White Wolf Gate.
+## Landmark names and their rough arrangement follow the lore; the streets and buildings are this
+## game's own design.
 
 const N := 209                 # 1.25 m terrain grid over the 260 m city square
-const OLD_Y := 4.0
+const OLD_Y := 6.0
 const NEW_Y := 0.0
 const RIDGE_HW := 15.0
-const TUNNELS := [-64.0, 2.0, 60.0]
+const TUNNELS := [-60.0, 4.0, 40.0]
 const TW := 3.6                # tunnel half-width
 const ARCH_H := 3.0            # springing height of the vault
-const PLAZA := Vector3(0, 0, 44)
-const PLAZA_R := 20.0
-const OLD_SQ := Vector3(-6, 0, -50)
-const LOTUS := Vector3(36, 0, -74)
-const LOTUS_R := 16.0
-const FANE := Vector3(-30, 0, -96)
-const FANE_R := 14.0
-const AMPHI := Vector3(-80, 0, -82)
+const PLAZA := Vector3(0, 0, 50)
+const PLAZA_R := 19.0
+const PLAZA_Y := 3.0
+const SHELF := Vector3(96, 0, 36)
+const SHELF_R := 21.0
+const SHELF_Y := 18.0
+const MARKET := Vector3(-8, 0, 86)
+const MARKET_R := 15.0
+const OLD_SQ := Vector3(0, 0, -46)
+const LANCE := Vector3(48, 0, -46)
+const LOTUS := Vector3(14, 0, -92)
+const LOTUS_R := 15.0
+const FANE := Vector3(-62, 0, -90)
+const FANE_R := 13.0
+const AMPHI := Vector3(66, 0, -84)
 const WATER_NEW := -1.0
-const WATER_OLD := 2.6
+const WATER_OLD := 4.6
 
 ## District boundary for the area title (Old Gridania lies north of the ridge).
 const DISTRICTS := [["Old Gridania", -9.0], ["New Gridania", 999.0]]
@@ -40,16 +52,18 @@ static func ridge_z(x: float) -> float:
 
 static func _streams_def() -> Array:
 	return [
-		# Apkallu: from the falls on the western cliffs, across New Gridania, out under the east wall.
-		{"level": WATER_NEW, "pts": [Vector2(-116, 63), Vector2(-104, 64), Vector2(-90, 70), Vector2(-70, 78), Vector2(-50, 84), Vector2(-30, 82),
-			Vector2(-10, 87), Vector2(10, 94), Vector2(32, 98), Vector2(54, 93), Vector2(76, 87), Vector2(98, 90), Vector2(132, 93)],
-			"w": [8.0, 13.0, 8.0, 8.5, 11.0, 8.5, 8.0, 8.0, 8.5, 8.0, 8.0, 8.0, 8.0]},
-		# The spring that feeds the Lotus Stand's pool, falling from the northern heights.
-		{"level": WATER_OLD, "pts": [Vector2(72, -116), Vector2(68, -104), Vector2(58, -94), Vector2(48, -84)], "w": [6.0, 4.5, 4.5, 5.0]},
-		# The pool's outflow, east under the wall.
-		{"level": WATER_OLD, "pts": [Vector2(50, -64), Vector2(70, -58), Vector2(90, -56), Vector2(110, -52), Vector2(132, -50)], "w": [5.0, 5.0, 5.0, 5.0, 5.0]},
-		# A quiet channel from the pool to Stillglade Fane's pond.
-		{"level": WATER_OLD, "pts": [Vector2(22, -80), Vector2(4, -86), Vector2(-14, -92)], "w": [4.0, 4.0, 4.0]},
+		# From Apkallu Falls on the western cliffs, round the south of the plaza, out to the east.
+		{"level": WATER_NEW, "pts": [Vector2(-112, 70), Vector2(-96, 72), Vector2(-78, 80), Vector2(-56, 92), Vector2(-34, 104), Vector2(-8, 108),
+			Vector2(18, 100), Vector2(38, 88), Vector2(60, 76), Vector2(84, 72), Vector2(106, 76), Vector2(134, 78)],
+			"w": [9.0, 12.0, 8.0, 8.0, 8.5, 9.0, 8.5, 8.0, 8.0, 8.0, 8.0, 8.0]},
+		# The spring that falls from the northern cliffs into the Lotus Stand's pool.
+		{"level": WATER_OLD, "pts": [Vector2(34, -122), Vector2(28, -112), Vector2(22, -104)], "w": [6.0, 4.5, 5.0]},
+		# The channel from the pool west to Stillglade Fane's pond.
+		{"level": WATER_OLD, "pts": [Vector2(0, -94), Vector2(-20, -96), Vector2(-46, -92)], "w": [4.5, 4.5, 4.5]},
+		# The pond's outflow, west under the cliffs.
+		{"level": WATER_OLD, "pts": [Vector2(-74, -98), Vector2(-96, -106), Vector2(-134, -112)], "w": [4.5, 4.5, 4.5]},
+		# A garden channel from the pool east to the Botanists' Guild.
+		{"level": WATER_OLD, "pts": [Vector2(28, -86), Vector2(52, -70), Vector2(78, -62), Vector2(100, -64)], "w": [3.0, 3.0, 3.0, 3.0]},
 	]
 
 
@@ -68,26 +82,43 @@ static func _poly(p: Vector2, pts: Array, w: Array) -> Vector2:
 	return Vector2(best, bw)
 
 
+## Radius of the basin's cliff edge in a given direction (an irregular, lobed ring).
+static func rim_radius(x: float, z: float) -> float:
+	var a := atan2(z, x)
+	return 116.0 + 7.0 * sin(a * 3.0 + 0.7) + 5.0 * sin(a * 7.0 + 2.1) + 3.0 * sin(a * 11.0 + 0.3)
+
+
 ## Ground height before the tunnels are cut (also used to cap the tunnels seamlessly).
 static func h_natural(x: float, z: float) -> float:
 	var zr := ridge_z(x)
 	var base := lerpf(OLD_Y, NEW_Y, smoothstep(zr - RIDGE_HW * 0.55, zr + RIDGE_HW * 0.55, z))
 	var nz := _noise.get_noise_2d(x, z)
-	var y := base + nz * 0.35
+	var nz2 := _noise.get_noise_2d(x * 2.7 + 50.0, z * 2.7)
+	var y := base + nz * 1.6 + nz2 * 0.4
 	# The ridge.
 	var t := absf(z - zr) / RIDGE_HW
-	var crest := 14.0 + 3.0 * sin(x * 0.07) + 2.0 * sin(x * 0.19) + nz * 2.0
-	y = maxf(y, base + crest * (1.0 - smoothstep(0.15, 1.0, t)))
-	# The forested heights around the city, with passes for the two gates.
-	var q := Vector2(absf(x) - 106.0, absf(z) - 106.0)
-	var d := Vector2(maxf(q.x, 0.0), maxf(q.y, 0.0)).length() + minf(maxf(q.x, q.y), 0.0)
-	var rim := smoothstep(-4.0, 16.0, d) * (18.0 + nz * 6.0)
-	if z > 96.0: rim *= smoothstep(6.0, 10.0, absf(x))                       # Blue Badger Gate
-	if x < -96.0: rim *= smoothstep(6.0, 10.0, absf(z + 56.0))               # White Wolf Gate
+	var crest := 15.0 + 3.0 * sin(x * 0.07) + 2.0 * sin(x * 0.19) + nz * 3.0
+	y = maxf(y, base + crest * (1.0 - smoothstep(0.1, 1.0, t)))
+	# Old Gridania's raised terraces: the Lancers' Guild and the great tree above the Lotus Stand.
+	for tr in [[LANCE, 15.0, 2.2], [Vector3(14, 0, -116), 13.0, 4.5], [Vector3(-30, 0, -62), 10.0, 2.0]]:
+		var dd := Vector2(x - tr[0].x, z - tr[0].z).length()
+		if dd < tr[1] + 3.0: y = maxf(y, lerpf(OLD_Y + float(tr[2]), y, smoothstep(tr[1] - 0.5, tr[1] + 3.0, dd)))
+	# The eastern cliff shelf where airships land.
+	var sd := Vector2(x - SHELF.x, z - SHELF.z).length()
+	if sd < SHELF_R + 4.0: y = maxf(y, lerpf(SHELF_Y + nz * 0.3, y, smoothstep(SHELF_R - 1.0, SHELF_R + 4.0, sd)))
+	# The cliff-ringed basin, with passes for the two gates, and the gorge below the landing.
+	var r := Vector2(x, z).length()
+	var R := rim_radius(x, z) + nz * 4.0
+	var rim := smoothstep(R - 7.0, R + 1.0, r) * (22.0 + nz * 7.0)
+	if z > 92.0: rim *= smoothstep(6.0, 10.0, absf(x - 12.0))              # Blue Badger Gate
+	if x < -92.0: rim *= smoothstep(6.0, 10.0, absf(z + 66.0))             # White Wolf Gate
 	y = maxf(y, base + rim)
-	# The Aetheryte Plaza stands on a raised stone terrace.
-	var pd := Vector2(x - PLAZA.x, z - PLAZA.z).length()
-	if pd < PLAZA_R + 0.6: y = NEW_Y + 1.2
+	# East of the shelf the ground falls away into a wooded gorge, where airships moor.
+	var gorge := smoothstep(111.0, 115.0, x) * (1.0 - smoothstep(18.0, 26.0, absf(z - SHELF.z)))
+	y = lerpf(y, -20.0 + nz * 3.0, gorge)
+	# The Aetheryte Plaza stands on a raised stone terrace; the marketplace is level.
+	if Vector2(x - PLAZA.x, z - PLAZA.z).length() < PLAZA_R + 0.6: y = PLAZA_Y
+	if Vector2(x - MARKET.x, z - MARKET.z).length() < MARKET_R: y = NEW_Y + 0.4
 	# Mih Khetto's Amphitheatre: a sunken stage and tiers of seating rising to the west.
 	var ad := Vector2(x - AMPHI.x, z - AMPHI.z)
 	var ar := ad.length()
@@ -95,21 +126,22 @@ static func h_natural(x: float, z: float) -> float:
 		if ar < 8.0: y = OLD_Y - 0.6
 		elif ad.x < 6.0 and ar < 22.0: y = OLD_Y - 0.4 + floorf((ar - 8.0) / 2.2) * 0.55
 		elif ad.x < 6.0: y = lerpf(OLD_Y - 0.4 + 6.0 * 0.55, y, smoothstep(22.0, 26.0, ar))
+		else: y = lerpf(OLD_Y - 0.6, y, smoothstep(8.0, 16.0, ar))
 	# Old Gridania's square is level.
 	if Vector2(x - OLD_SQ.x, z - OLD_SQ.z).length() < 14.0: y = OLD_Y
 	# Pools and streams.
 	for pool in [[LOTUS, LOTUS_R], [FANE, FANE_R]]:
 		var c: Vector3 = pool[0]
-		var r: float = pool[1]
+		var pr: float = pool[1]
 		var dd := Vector2(x - c.x, z - c.z).length()
-		if dd < r + 3.0:
-			y = minf(y, lerpf(WATER_OLD - 2.2, y, smoothstep(r - 3.0, r + 3.0, dd)))
-	if Vector2(x - FANE.x, z - FANE.z).length() < 7.5: y = OLD_Y + 0.3     # the Fane's island
+		if dd < pr + 3.0:
+			y = minf(y, lerpf(WATER_OLD - 2.2, y, smoothstep(pr - 3.0, pr + 3.0, dd)))
+	if Vector2(x - FANE.x, z - FANE.z).length() < 7.0: y = OLD_Y + 0.3     # the Fane's island
 	for s in _streams:
 		if not (s["box"] as Rect2).has_point(Vector2(x, z)): continue
-		var pr := _poly(Vector2(x, z), s["pts"], s["w"])
-		if pr.x < pr.y + 3.5:
-			y = minf(y, lerpf(float(s["level"]) - 1.6, y, smoothstep(pr.y - 1.2, pr.y + 3.5, pr.x)))
+		var ps := _poly(Vector2(x, z), s["pts"], s["w"])
+		if ps.x < ps.y + 3.5:
+			y = minf(y, lerpf(float(s["level"]) - 1.6, y, smoothstep(ps.y - 1.2, ps.y + 3.5, ps.x)))
 	return y
 
 
@@ -129,12 +161,12 @@ static func height(x: float, z: float) -> float:
 
 static func build(zone_id: String) -> Dictionary:
 	var zd: Dictionary = Data.zones[zone_id]
-	_noise = FastNoiseLite.new(); _noise.seed = 1717; _noise.frequency = 0.03
+	_noise = FastNoiseLite.new(); _noise.seed = 1717; _noise.frequency = 0.022
 	_streams = _streams_def()
 	for s in _streams:
-		var r := Rect2(s["pts"][0], Vector2.ZERO)
-		for q in s["pts"]: r = r.expand(q)
-		s["box"] = r.grow(12.0)
+		var rr := Rect2(s["pts"][0], Vector2.ZERO)
+		for q in s["pts"]: rr = rr.expand(q)
+		s["box"] = rr.grow(12.0)
 	var size := ZoneData.SIZE
 	var half := size * 0.5
 	var sp := size / (N - 1)
@@ -147,12 +179,12 @@ static func build(zone_id: String) -> Dictionary:
 			h[iz * N + ix] = height(-half + ix * sp, -half + iz * sp)
 	var root := Node3D.new(); root.name = "City"
 	var exits := [
-		{"to": "central_shroud", "dir": "S", "pos": Vector3(0, 0, 126), "gate": "Blue Badger Gate"},
-		{"to": "north_shroud", "dir": "W", "pos": Vector3(-126, 0, -56), "gate": "White Wolf Gate"},
+		{"to": "central_shroud", "dir": "S", "pos": Vector3(12, 0, 126), "gate": "Blue Badger Gate"},
+		{"to": "north_shroud", "dir": "W", "pos": Vector3(-126, 0, -66), "gate": "White Wolf Gate"},
 	]
 	var info := {"root": root, "heights": h, "n": N, "size": size, "exits": exits, "landmarks": [], "aetheryte": PLAZA,
 		"waters": [], "npcs": [], "biome": b, "spawns": [], "nodes": [], "camp": PLAZA + Vector3(0, 0, 26), "interact": [], "city": true,
-		"districts": DISTRICTS}
+		"districts": DISTRICTS, "shards": []}
 	var g := func(x: float, z: float) -> float: return ZoneBuilder.sample(h, x, z, N, size)
 	# ---------------------------------------------------------------- streets
 	var paths := _paths()
@@ -166,9 +198,9 @@ static func build(zone_id: String) -> Dictionary:
 			var i := iz * N + ix
 			var p := Vector2(-half + ix * sp, -half + iz * sp)
 			var road := 1.0 - smoothstep(-1.0, 0.0, _road[i])
-			if p.distance_to(Vector2(PLAZA.x, PLAZA.z)) < PLAZA_R - 0.5 or p.distance_to(Vector2(OLD_SQ.x, OLD_SQ.z)) < 13.0: road = 1.0
+			if p.distance_to(Vector2(OLD_SQ.x, OLD_SQ.z)) < 13.0 or p.distance_to(Vector2(MARKET.x, MARKET.z)) < MARKET_R - 1.0: road = 1.0
 			mask[i] = road
-	var tb := Dictionary(b); tb["grass_a"] = "#2a4419"; tb["grass_b"] = "#46642a"; tb["dirt"] = "#5a4630"; tb["rock"] = "#3e4a2a"
+	var tb := Dictionary(b); tb["grass_a"] = "#2a4419"; tb["grass_b"] = "#4e6a2a"; tb["dirt"] = "#5a4630"; tb["rock"] = "#4a4c3a"
 	tb["shore_h"] = -99.0
 	ZoneBuilder._terrain_mesh(root, h, mask, tb, N, size)
 	var tmat: ShaderMaterial = (root.get_node("Terrain") as MeshInstance3D).mesh.surface_get_material(0)
@@ -176,7 +208,7 @@ static func build(zone_id: String) -> Dictionary:
 	var bt := Batcher.new()
 	var rng := RandomNumberGenerator.new(); rng.seed = 2207
 	var trees := {"elder": [], "oak": [], "slim": [], "bush": [], "fern": [], "great": []}
-	var occupied := []   # [Vector2 centre, radius] kept clear of filler houses and trees
+	var occupied := []   # [Vector2 centre, radius] kept clear of filler buildings and trees
 	# ---------------------------------------------------------------- water
 	for s in _streams:
 		_stream_mesh(root, s, b)
@@ -187,125 +219,133 @@ static func build(zone_id: String) -> Dictionary:
 		var c: Vector3 = pool[0]
 		info["waters"].append({"kind": "lake", "level": WATER_OLD, "center": Vector2(c.x, c.z), "radius": float(pool[1]) - 0.5})
 		ZoneBuilder._water_plane(root, Vector3(c.x, WATER_OLD, c.z), Vector2(float(pool[1]) * 2.3, float(pool[1]) * 2.3), b, false)
-	_waterfall(root, bt, Vector3(-127, 17, 63), Vector3(-114, WATER_NEW, 63), 9.0)
-	_waterfall(root, bt, Vector3(74, OLD_Y + 12.0, -126), Vector3(72, WATER_OLD, -116), 5.0)
-	ZoneBuilder._sign(root, Vector3(-112, 6, 63), "Apkallu Falls", 24)
-	info["landmarks"].append({"name": "Apkallu Falls", "pos": Vector3(-104, 0, 70)})
-	# ---------------------------------------------------------------- the ridge and its tunnels
+	_waterfall(root, bt, Vector3(-124, 20, 69), Vector3(-111, WATER_NEW, 70), 10.0)
+	_waterfall(root, bt, Vector3(38, OLD_Y + 16.0, -130), Vector3(34, WATER_OLD, -121), 6.0)
+	ZoneBuilder._sign(root, Vector3(-108, 7, 70), "Apkallu Falls", 24)
+	info["landmarks"].append({"name": "Apkallu Falls", "pos": Vector3(-100, 0, 76)})
+	# ---------------------------------------------------------------- the ridge, its tunnels and the cliffs
 	for tx in TUNNELS:
 		_tunnel(root, bt, tx)
+	_cliff_rocks(root, rng, g)
 	# ---------------------------------------------------------------- New Gridania
 	_plaza(root, bt, info, g)
 	occupied.append([Vector2(PLAZA.x, PLAZA.z), PLAZA_R + 3.0])
 	var services := {}
-	# The Carline Canopy: the Adventurers' Guild, a long hall with a tower, facing the plaza.
-	services["guild"] = _hall(bt, root, Vector3(-46, 0, 40), PLAZA, 20.0, 13.0, 2, g, occupied, {"tower": true, "roof": "roof_g"}, zd["guild"], info)
-	services["inn"] = _hall(bt, root, Vector3(-48, 0, 64), Vector3(-20, 0, 60), 13.0, 10.0, 2, g, occupied, {"roof": "roof_b"}, "The Roost", info)
-	services["smith"] = _hall(bt, root, Vector3(46, 0, 38), PLAZA, 16.0, 12.0, 2, g, occupied, {"roof": "roof_b", "chimney": true}, "Carpenters' Guild (The Knot)", info)
-	_hall(bt, root, Vector3(42, 0, 64), Vector3(14, 0, 52), 14.0, 11.0, 2, g, occupied, {"tower": true}, "The Adders' Nest", info)
-	_hall(bt, root, Vector3(80, 0, 64), Vector3(56, 0, 66), 14.0, 11.0, 1, g, occupied, {}, "Archers' Guild", info)
+	# The Carline Canopy, Adventurers' Guild and inn, at the foot of the eastern cliff.
+	var canopy := _lodge(bt, root, Vector3(58, 0, 40), PLAZA, 20.0, 15.0, g, occupied, info, zd["guild"],
+		{"interior": true, "kind": "guild", "floors": 2, "roof": "roof_g", "turret": true, "turret_roof": "roof_r"})
+	services["guild"] = canopy
+	_airship_landing(root, bt, info, g, occupied)
+	_lodge(bt, root, Vector3(30, 0, 22), PLAZA, 15.0, 11.0, g, occupied, info, "The Adders' Nest", {"interior": true, "kind": "hall", "floors": 2, "roof": "roof_r", "turret": true})
+	services["smith"] = _lodge(bt, root, Vector3(54, 0, 100), Vector3(40, 0, 80), 15.0, 12.0, g, occupied, info, "Carpenters' Guild (The Knot)",
+		{"interior": true, "kind": "shop", "floors": 1, "roof": "roof_o"})
+	for k in 3:
+		GKit.crates(bt, Vector3(64 + k * 2.5, g.call(64 + k * 2.5, 92), 92), 0.3 * k)
+	_lodge(bt, root, Vector3(-66, 0, 60), PLAZA, 14.0, 11.0, g, occupied, info, "Archers' Guild", {"interior": true, "kind": "hall", "roof": "roof_o"})
 	for k in 4:
-		_target(bt, Vector3(100, g.call(100, 56.0 + k * 6.0), 56.0 + k * 6.0))
-	for c in [Vector3(-8, 0, 74), Vector3(8, 0, 74), Vector3(-20, 0, 72), Vector3(20, 0, 72)]:
-		GKit.stall(bt, Vector3(c.x, g.call(c.x, c.z), c.z), atan2(-c.x, -(c.z - 60.0)) if false else PI, "cloth_g" if c.x < 0 else "cloth_y")
-		occupied.append([Vector2(c.x, c.z), 3.0])
-	# Acorn Orchard, across the stream to the south-west.
-	ZoneBuilder._sign(root, Vector3(-64, g.call(-64, 106) + 5.0, 106), "Acorn Orchard", 22)
-	info["landmarks"].append({"name": "Acorn Orchard", "pos": Vector3(-64, 0, 104)})
+		_target(bt, Vector3(-92, g.call(-92, 48.0 + k * 6.0), 48.0 + k * 6.0))
+	_market(root, bt, info, g, occupied)
+	# Acorn Orchard, in the west below the cliffs.
+	ZoneBuilder._sign(root, Vector3(-86, g.call(-86, 34) + 5.0, 34), "Acorn Orchard", 22)
+	info["landmarks"].append({"name": "Acorn Orchard", "pos": Vector3(-86, 0, 34)})
+	var orchard_fence := []
 	for i in 4:
 		for j in 3:
-			var p := Vector3(-82 + i * 9.0, 0, 98 + j * 9.0)
+			var p := Vector3(-100 + i * 8.0, 0, 24 + j * 8.0)
 			trees["oak"].append(Vector3(p.x, g.call(p.x, p.z), p.z))
-	for c in [Vector3(-46, 0, 104), Vector3(-40, 0, 112)]:
-		GKit.stall(bt, Vector3(c.x, g.call(c.x, c.z), c.z), -PI * 0.5, "cloth_y")
-	occupied.append([Vector2(-64, 106), 18.0])
-	# The Blue Badger Gate.
-	_gatehouse(root, bt, Vector3(0, g.call(0, 112), 112), 0.0, "Blue Badger Gate", g)
-	occupied.append([Vector2(0, 114), 10.0])
+	for q in [Vector2(-106, 18), Vector2(-70, 18), Vector2(-70, 46), Vector2(-106, 46), Vector2(-106, 18)]:
+		orchard_fence.append(Vector3(q.x, g.call(q.x, q.y), q.y))
+	GStyle.fence(bt, orchard_fence)
+	occupied.append([Vector2(-88, 32), 18.0])
+	_gatehouse(root, bt, Vector3(12, g.call(12, 112), 112), 0.0, "Blue Badger Gate", g)
+	occupied.append([Vector2(12, 114), 10.0])
 	# ---------------------------------------------------------------- Old Gridania
 	_old_square(root, bt, trees, g)
 	occupied.append([Vector2(OLD_SQ.x, OLD_SQ.z), 15.0])
-	services["trainer"] = _hall(bt, root, Vector3(-64, 0, -48), OLD_SQ, 16.0, 12.0, 2, g, occupied, {"tower": true, "roof": "roof_t"}, "Lancers' Guild", info)
+	services["trainer"] = _lodge(bt, root, LANCE + Vector3(4, 0, -4), OLD_SQ, 16.0, 12.0, g, occupied, info, "Lancers' Guild",
+		{"interior": true, "kind": "hall", "floors": 2, "roof": "roof_r", "turret": true, "turret_roof": "roof_g"})
 	for k in 3:
-		_dummy(bt, Vector3(-52 + k * 4.0, g.call(-52 + k * 4.0, -66), -66))
-	occupied.append([Vector2(-48, -66), 7.0])
-	services["market"] = _hall(bt, root, Vector3(52, 0, -42), OLD_SQ, 14.0, 11.0, 2, g, occupied, {"roof": "roof_b"}, "Leatherworkers' Guild", info)
+		var dp := LANCE + Vector3(-8.0 + k * 4.0, 0, 10)
+		_dummy(bt, Vector3(dp.x, g.call(dp.x, dp.z), dp.z))
+	services["market"] = _lodge(bt, root, Vector3(-46, 0, -40), OLD_SQ, 14.0, 11.0, g, occupied, info, "Leatherworkers' Guild",
+		{"interior": true, "kind": "shop", "roof": "roof_o"})
+	_boardwalk(bt, [Vector3(-32, 0, -44), Vector3(-36, 0, -30), Vector3(-58, 0, -26), Vector3(-62, 0, -40)], g)
 	for k in 3:
-		_rack(bt, Vector3(62 + k * 3.0, g.call(62 + k * 3.0, -30), -30))
-	_hall(bt, root, Vector3(90, 0, -88), Vector3(70, 0, -70), 14.0, 11.0, 1, g, occupied, {"roof": "roof_g"}, "Botanists' Guild", info)
-	_gardens(bt, Vector3(78, 0, -74), g)
-	occupied.append([Vector2(78, -74), 8.0])
+		_rack(bt, Vector3(-60 + k * 3.0, g.call(-60 + k * 3.0, -54), -54))
+	_lodge(bt, root, Vector3(98, 0, -44), Vector3(70, 0, -56), 14.0, 11.0, g, occupied, info, "Botanists' Guild", {"interior": true, "kind": "shop", "roof": "roof_g"})
+	_gardens(bt, Vector3(82, 0, -74), g)
+	GStyle.fence(bt, [Vector3(72, g.call(72, -80), -80), Vector3(92, g.call(92, -80), -80), Vector3(92, g.call(92, -68), -68)])
+	occupied.append([Vector2(82, -74), 9.0])
 	_lotus_stand(root, bt, trees, info, g)
 	occupied.append([Vector2(LOTUS.x, LOTUS.z), LOTUS_R + 4.0])
-	occupied.append([Vector2(34, -104), 12.0])
+	occupied.append([Vector2(14, -116), 12.0])
 	_fane(root, bt, trees, info, g)
 	occupied.append([Vector2(FANE.x, FANE.z), FANE_R + 4.0])
 	_amphitheatre(root, bt, info, g)
 	occupied.append([Vector2(AMPHI.x, AMPHI.z), 26.0])
-	_gatehouse(root, bt, Vector3(-112, g.call(-112, -56), -56), PI * 0.5, "White Wolf Gate", g)
-	occupied.append([Vector2(-114, -56), 10.0])
-	# ---------------------------------------------------------------- service NPCs
-	var gd: Vector3 = services["guild"]
-	var gface := atan2(PLAZA.x - gd.x, PLAZA.z - gd.z) + PI
+	_gatehouse(root, bt, Vector3(-112, g.call(-112, -66), -66), PI * 0.5, "White Wolf Gate", g)
+	occupied.append([Vector2(-114, -66), 10.0])
+	# ---------------------------------------------------------------- aethernet
+	for sh in [["Aetheryte Plaza", PLAZA + Vector3(14, PLAZA_Y, 8)], ["Carline Canopy", Vector3(40, 0, 50)], ["Marketplace", MARKET + Vector3(0, 0, -11)],
+			["Archers' Guild", Vector3(-50, 0, 66)], ["The Knot", Vector3(42, 0, 104)], ["Airship Landing", SHELF + Vector3(-6, 0, -10)],
+			["Old Gridania", OLD_SQ + Vector3(10, 0, 8)], ["Lancers' Guild", LANCE + Vector3(-12, 0, 6)], ["The Lotus Stand", LOTUS + Vector3(-6, 0, LOTUS_R + 5.0)],
+			["Stillglade Fane", FANE + Vector3(14, 0, FANE_R + 2.0)], ["Leatherworkers' Guild", Vector3(-34, 0, -54)]]:
+		var sp3: Vector3 = sh[1]
+		var gy: float = g.call(sp3.x, sp3.z)
+		var spos := Vector3(sp3.x, gy, sp3.z)
+		GStyle.shard(root, bt, spos, sh[0])
+		info["shards"].append({"name": sh[0], "pos": spos, "out": Vector3(0, 0, 2.4)})
+		occupied.append([Vector2(spos.x, spos.z), 2.5])
+	# ---------------------------------------------------------------- service NPCs (inside their halls)
+	var gc: Dictionary = services["guild"]
+	var gin: Vector3 = gc["counter"]
+	var gface := atan2((gc["door"] as Vector3).x - gin.x, (gc["door"] as Vector3).z - gin.z)
 	var gside := Vector3(cos(gface), 0, -sin(gface))
-	info["npcs"].append({"role": "guildmaster", "pos": gd, "face": gface, "cast": StoryData.GUILDS[zone_id]["gm"]})
-	info["npcs"].append({"role": "leves", "pos": gd + gside * 6.0, "face": gface, "name": "Levemete"})
-	info["npcs"].append({"role": "recruiter", "pos": gd - gside * 6.0, "face": gface, "name": "Party Recruiter"})
-	for r in [["inn", "Cook"], ["smith", "Smith"], ["market", "Merchant"], ["trainer", "Job Trainer"]]:
-		info["npcs"].append({"role": r[0], "pos": services[r[0]], "face": 0.0, "name": r[1]})
+	info["npcs"].append({"role": "guildmaster", "pos": gin, "y": gc["floor"], "yaw": gface, "cast": StoryData.GUILDS[zone_id]["gm"]})
+	info["npcs"].append({"role": "leves", "pos": gin + gside * 4.0, "y": gc["floor"], "yaw": gface, "name": "Levemete"})
+	info["npcs"].append({"role": "recruiter", "pos": gin - gside * 4.0, "y": gc["floor"], "yaw": gface, "name": "Party Recruiter"})
+	info["npcs"].append({"role": "inn", "pos": (gc["inside"] as Vector3) + gside * 5.5, "y": gc["floor"], "yaw": gface - PI * 0.5, "name": "Innkeep"})
+	for r in [["smith", "Smith"], ["market", "Merchant"], ["trainer", "Job Trainer"]]:
+		var sc: Dictionary = services[r[0]]
+		var cp: Vector3 = sc["counter"]
+		info["npcs"].append({"role": r[0], "pos": cp, "y": sc["floor"], "yaw": atan2((sc["door"] as Vector3).x - cp.x, (sc["door"] as Vector3).z - cp.z), "name": r[1]})
 	# ---------------------------------------------------------------- homes
 	var homes := [
-		# New Gridania
-		[Vector3(-26, 0, 20), Vector3(-8, 0, 30)], [Vector3(24, 0, 20), Vector3(8, 0, 30)], [Vector3(-74, 0, 30), Vector3(-50, 0, 30)],
-		[Vector3(-80, 0, 50), Vector3(-60, 0, 50)], [Vector3(70, 0, 26), Vector3(50, 0, 30)], [Vector3(84, 0, 42), Vector3(60, 0, 44)],
-		[Vector3(-24, 0, 100), Vector3(-10, 0, 90)], [Vector3(24, 0, 112), Vector3(10, 0, 104)], [Vector3(-26, 0, 64), Vector3(-10, 0, 56)],
-		[Vector3(66, 0, 110), Vector3(48, 0, 100)], [Vector3(88, 0, 108), Vector3(70, 0, 100)], [Vector3(-92, 0, 90), Vector3(-80, 0, 80)],
-		[Vector3(-100, 0, 36), Vector3(-80, 0, 40)], [Vector3(96, 0, 22), Vector3(80, 0, 30)],
-		# Old Gridania
-		[Vector3(-30, 0, -40), Vector3(-10, 0, -48)], [Vector3(16, 0, -38), Vector3(0, 0, -48)], [Vector3(-38, 0, -64), Vector3(-14, 0, -58)],
-		[Vector3(22, 0, -54), Vector3(4, 0, -52)], [Vector3(-90, 0, -42), Vector3(-70, 0, -40)], [Vector3(-96, 0, -110), Vector3(-80, 0, -100)],
-		[Vector3(-54, 0, -112), Vector3(-44, 0, -96)], [Vector3(78, 0, -38), Vector3(60, 0, -44)], [Vector3(96, 0, -26), Vector3(76, 0, -30)],
-		[Vector3(100, 0, -110), Vector3(86, 0, -96)], [Vector3(10, 0, -112), Vector3(10, 0, -96)], [Vector3(-8, 0, -76), Vector3(-6, 0, -60)],
+		[Vector3(-28, 0, 22), PLAZA], [Vector3(-40, 0, 38), PLAZA], [Vector3(-30, 0, 70), PLAZA], [Vector3(26, 0, 74), PLAZA],
+		[Vector3(-62, 0, 104), Vector3(-50, 0, 92)], [Vector3(30, 0, 116), Vector3(20, 0, 104)], [Vector3(78, 0, 100), Vector3(62, 0, 90)],
+		[Vector3(-86, 0, 70), Vector3(-70, 0, 64)], [Vector3(76, 0, 8), Vector3(60, 0, 20)], [Vector3(-82, 0, 2), Vector3(-66, 0, 14)],
+		[Vector3(-24, 0, -30), OLD_SQ], [Vector3(24, 0, -28), OLD_SQ], [Vector3(-20, 0, -70), OLD_SQ], [Vector3(30, 0, -64), OLD_SQ],
+		[Vector3(-80, 0, -40), Vector3(-60, 0, -40)], [Vector3(-94, 0, -84), Vector3(-76, 0, -84)], [Vector3(88, 0, -18), Vector3(70, 0, -30)],
+		[Vector3(-30, 0, -110), Vector3(-30, 0, -96)], [Vector3(46, 0, -112), Vector3(30, 0, -100)], [Vector3(84, 0, -104), Vector3(70, 0, -90)],
 	]
-	for hm in homes:
+	for i in homes.size():
+		var hm: Array = homes[i]
 		var p: Vector3 = hm[0]
-		var clear := true
-		for o in occupied:
-			if Vector2(p.x, p.z).distance_to(o[0]) < float(o[1]) + 5.0: clear = false
-		if not clear: continue
-		var w := rng.randf_range(8.0, 11.0); var d := rng.randf_range(7.0, 9.5)
-		var gy := _footing(g, p, maxf(w, d))
+		if _blocked(Vector2(p.x, p.z), occupied, 5.0) or _in_water(Vector2(p.x, p.z), 4.0): continue
 		var yaw := atan2(hm[1].x - p.x, hm[1].z - p.z)
-		GKit.house(bt, root, Vector3(p.x, gy, p.z), yaw, w, d, 2 if rng.randf() < 0.55 else 1,
-			{"roof": ["roof_g", "roof_b", "roof_t"][rng.randi() % 3], "plaster": "plaster" if rng.randf() < 0.7 else "plaster_g", "chimney": rng.randf() < 0.4})
-		occupied.append([Vector2(p.x, p.z), maxf(w, d) * 0.6 + 2.0])
-	# ---------------------------------------------------------------- lanterns along the streets
-	var lit := 0
-	for s in paths:
-		var pts: Array = s[0]
-		for i in pts.size() - 1:
-			var a: Vector2 = pts[i]; var c: Vector2 = pts[i + 1]
-			var n := int(a.distance_to(c) / 16.0)
-			for k in n:
-				var t := (k + 0.5) / maxf(1, n)
-				var q := a.lerp(c, t)
-				var side := (c - a).orthogonal().normalized() * (float(s[1]) + 0.9) * (1.0 if k % 2 == 0 else -1.0)
-				var lp := q + side
-				if _in_water(lp, 1.0) or _blocked(lp, occupied, 0.0): continue
-				GKit.lamp_post(bt, root, Vector3(lp.x, g.call(lp.x, lp.y), lp.y), atan2(-side.y, side.x), lit % 4 == 0 and lit < 48)
-				lit += 1
+		if i % 3 == 2:
+			var r := rng.randf_range(3.6, 4.6)
+			GStyle.cottage(bt, Vector3(p.x, _footing(g, p, r * 2.0), p.z), yaw, r, {"roof": ["roof_o", "roof_r", "roof_g"][i % 3]})
+			occupied.append([Vector2(p.x, p.z), r + 3.0])
+		else:
+			var w := rng.randf_range(9.0, 12.0); var d := rng.randf_range(8.0, 10.0)
+			GStyle.lodge(bt, root, Vector3(p.x, _footing(g, p, maxf(w, d)), p.z), yaw, w, d,
+				{"roof": ["roof_o", "roof_r", "roof_g"][i % 3], "floors": 2 if rng.randf() < 0.5 else 1, "awning": rng.randf() < 0.4})
+			occupied.append([Vector2(p.x, p.z), maxf(w, d) * 0.6 + 3.0])
+	# ---------------------------------------------------------------- street dressing
+	_dress_streets(root, bt, rng, paths, occupied, g)
 	# ---------------------------------------------------------------- people
-	var side_spots := [PLAZA + Vector3(12, 0, 8), PLAZA + Vector3(-12, 0, 8), PLAZA + Vector3(10, 0, -10), PLAZA + Vector3(-10, 0, -10)]
+	var side_spots := [PLAZA + Vector3(12, 0, 10), PLAZA + Vector3(-12, 0, 10), PLAZA + Vector3(10, 0, -10), PLAZA + Vector3(-10, 0, -10)]
 	var si := 0
 	for q in StoryData.SIDE:
 		if q["city"] == zone_id and si < side_spots.size():
 			info["npcs"].append({"role": "side", "pos": side_spots[si], "face": 0.0, "quest": q["id"], "name": q["giver"]})
 			si += 1
-	for sc in [["orrik", gd + Vector3(6, 0, 7)], ["ysolde", PLAZA + Vector3(14, 0, 14)], ["tatale", OLD_SQ + Vector3(8, 0, 6)]]:
-		info["npcs"].append({"role": "story", "pos": sc[1], "face": 0.0, "cast": sc[0]})
-	for f in [PLAZA + Vector3(16, 0, 10), PLAZA + Vector3(-5, 0, 16), Vector3(4, 0, 78), Vector3(-14, 0, 80), Vector3(-60, 0, 100),
-			Vector3(60, 0, 70), OLD_SQ + Vector3(9, 0, 7), OLD_SQ + Vector3(-9, 0, -5), Vector3(22, 0, -50), Vector3(-24, 0, -70),
-			Vector3(-74, 0, -84), Vector3(84, 0, -80), Vector3(-56, 0, -60)]:
+	for sc2 in [["orrik", Vector3(40, 0, 54)], ["ysolde", MARKET + Vector3(6, 0, 4)], ["tatale", OLD_SQ + Vector3(8, 0, 6)]]:
+		info["npcs"].append({"role": "story", "pos": sc2[1], "face": 0.0, "cast": sc2[0]})
+	for f in [PLAZA + Vector3(16, 0, 10), PLAZA + Vector3(-5, 0, 16), MARKET + Vector3(-6, 0, 6), MARKET + Vector3(8, 0, -6), Vector3(-80, 0, 34),
+			Vector3(-60, 0, 70), OLD_SQ + Vector3(9, 0, 7), OLD_SQ + Vector3(-9, 0, -5), Vector3(4, 0, -70), Vector3(-44, 0, -76),
+			Vector3(60, 0, -72), Vector3(84, 0, -64), Vector3(36, 0, -38), SHELF + Vector3(0, 0, 6)]:
 		info["npcs"].append({"role": "citizen", "pos": f, "face": rng.randf() * TAU})
 	# ---------------------------------------------------------------- exits
 	for e in exits:
@@ -330,29 +370,278 @@ static func _paths() -> Array:
 	for tx in TUNNELS:
 		var zr := ridge_z(tx)
 		ps.append([[Vector2(tx, zr - RIDGE_HW - 6.0), Vector2(tx, zr + RIDGE_HW + 6.0)], 3.2])
-	ps.append([[P + Vector2(0, PLAZA_R), Vector2(0, 86), Vector2(0, 126)], 3.4])                      # to the Blue Badger Gate
-	ps.append([[P - Vector2(0, PLAZA_R), Vector2(2, ridge_z(2) + RIDGE_HW + 6.0)], 3.0])
-	ps.append([[P + Vector2(-PLAZA_R, -6), Vector2(-40, 26), Vector2(-64, ridge_z(-64) + RIDGE_HW + 6.0)], 2.8])
-	ps.append([[P + Vector2(PLAZA_R, -6), Vector2(40, 22), Vector2(60, ridge_z(60) + RIDGE_HW + 6.0)], 2.8])
-	ps.append([[P + Vector2(-PLAZA_R, 4), Vector2(-34, 48)], 3.0])                                    # Carline Canopy
-	ps.append([[P + Vector2(PLAZA_R, 2), Vector2(36, 42)], 3.0])                                      # the Knot
-	ps.append([[P + Vector2(-12, 16), Vector2(-36, 66)], 2.6])                                        # the Roost
-	ps.append([[P + Vector2(12, 16), Vector2(32, 62), Vector2(68, 66)], 2.6])                         # Adders' Nest, Archers' Guild
-	ps.append([[Vector2(-36, 66), Vector2(-58, 74), Vector2(-60, 92), Vector2(-62, 112)], 2.6])     # bridge to Acorn Orchard
-	ps.append([[Vector2(32, 62), Vector2(46, 80), Vector2(50, 106)], 2.6])
-	ps.append([[Vector2(0, 104), Vector2(-46, 106)], 2.4])
+	# New Gridania
+	ps.append([[P + Vector2(0, PLAZA_R + 4.0), Vector2(MARKET.x, MARKET.z), Vector2(-2, 104), Vector2(10, 126)], 3.2])   # market, bridge, Blue Badger Gate
+	ps.append([[P - Vector2(0, PLAZA_R + 4.0), Vector2(4, ridge_z(4) + RIDGE_HW + 6.0)], 3.0])
+	ps.append([[P + Vector2(-PLAZA_R - 4.0, -6), Vector2(-40, 28), Vector2(-60, ridge_z(-60) + RIDGE_HW + 6.0)], 2.8])
+	ps.append([[P + Vector2(PLAZA_R + 3.0, -8), Vector2(40, ridge_z(40) + RIDGE_HW + 6.0)], 2.8])
+	ps.append([[P + Vector2(PLAZA_R + 4.0, 0), Vector2(44, 50)], 3.0])                                  # Carline Canopy
+	ps.append([[P + Vector2(12, -PLAZA_R), Vector2(26, 30)], 2.6])                                       # Adders' Nest
+	ps.append([[P + Vector2(-PLAZA_R - 4.0, 6), Vector2(-52, 62)], 2.8])                                 # Archers' Guild
+	ps.append([[Vector2(-52, 62), Vector2(-74, 50), Vector2(-86, 40)], 2.4])                             # Acorn Orchard
+	ps.append([[Vector2(MARKET.x + MARKET_R, MARKET.z), Vector2(30, 82), Vector2(44, 90), Vector2(50, 92)], 2.8])   # to the Knot
+	ps.append([[Vector2(-52, 62), Vector2(-74, 70), Vector2(-96, 76)], 2.2])                             # Apkallu Falls
+	ps.append([[Vector2(44, 50), Vector2(64, 58), Vector2(70, 62)], 2.6])                                # to the landing stairs
+	# Old Gridania
 	var O := Vector2(OLD_SQ.x, OLD_SQ.z)
-	ps.append([[Vector2(-64, ridge_z(-64) - RIDGE_HW - 6.0), Vector2(-40, -40), O + Vector2(-13, 2)], 2.8])
-	ps.append([[Vector2(60, ridge_z(60) - RIDGE_HW - 6.0), Vector2(40, -40), O + Vector2(13, 2)], 2.8])
-	ps.append([[Vector2(2, ridge_z(2) - RIDGE_HW - 6.0), O + Vector2(0, 13)], 3.0])
-	ps.append([[O + Vector2(-12, -2), Vector2(-54, -48)], 2.8])                                       # Lancers' Guild
-	ps.append([[O + Vector2(12, 0), Vector2(44, -44)], 2.8])                                          # Leatherworkers' Guild
-	ps.append([[O + Vector2(4, -12), Vector2(20, -60), Vector2(30, -56)], 2.6])                       # to the Lotus Stand boardwalk
-	ps.append([[O + Vector2(-6, -12), Vector2(-24, -72), Vector2(-28, -78)], 2.6])                    # to Stillglade Fane
-	ps.append([[Vector2(-54, -48), Vector2(-70, -64), Vector2(-74, -70)], 2.6])                       # to the amphitheatre
-	ps.append([[Vector2(-54, -48), Vector2(-90, -54), Vector2(-126, -56)], 3.0])                      # White Wolf Gate
-	ps.append([[Vector2(44, -44), Vector2(66, -60), Vector2(82, -80)], 2.6])                          # Botanists' Guild
+	ps.append([[Vector2(-60, ridge_z(-60) - RIDGE_HW - 6.0), Vector2(-36, -40), O + Vector2(-13, 2)], 2.8])
+	ps.append([[Vector2(40, ridge_z(40) - RIDGE_HW - 6.0), Vector2(32, -40), O + Vector2(13, 2)], 2.8])
+	ps.append([[Vector2(4, ridge_z(4) - RIDGE_HW - 6.0), O + Vector2(0, 13)], 3.0])
+	ps.append([[O + Vector2(13, -2), Vector2(LANCE.x - 14.0, LANCE.z)], 2.8])                            # Lancers' Guild
+	ps.append([[O + Vector2(0, -13), Vector2(LOTUS.x - 4.0, LOTUS.z + LOTUS_R + 4.0)], 2.8])             # the Lotus Stand
+	ps.append([[O + Vector2(-10, -8), Vector2(-36, -70), Vector2(FANE.x + 6.0, FANE.z + FANE_R + 3.0)], 2.6])   # Stillglade Fane
+	ps.append([[Vector2(LANCE.x, LANCE.z - 14.0), Vector2(56, -70), Vector2(AMPHI.x - 10.0, AMPHI.z + 8.0)], 2.6])  # amphitheatre
+	ps.append([[Vector2(LANCE.x + 14.0, LANCE.z), Vector2(80, -50), Vector2(88, -46)], 2.6])            # Botanists' Guild
+	ps.append([[Vector2(-36, -40), Vector2(-80, -58), Vector2(-126, -66)], 3.0])                         # White Wolf Gate
 	return ps
+
+
+## The Aetheryte Plaza: a raised stone terrace with steps on four sides, lanterns, benches under
+## gold canopies, flower beds, and the great aetheryte at its heart.
+static func _plaza(root: Node3D, bt: Batcher, info: Dictionary, g: Callable) -> void:
+	var c := PLAZA + Vector3(0, PLAZA_Y, 0)
+	bt.add(GKit._cyl(PLAZA_R + 0.4, 8.0, PLAZA_R + 0.8, 48), Transform3D(Basis(), c - Vector3(0, 4.05, 0)), "stone", GKit.M("stone"))
+	bt.add(GKit._cyl(PLAZA_R + 0.8, 0.3, PLAZA_R + 0.8, 48), Transform3D(Basis(), c), "stone_dark", GKit.M("stone_dark"))
+	bt.add(GKit._cyl(10.0, 0.1, 10.0, 40), Transform3D(Basis(), c + Vector3(0, 0.07, 0)), "plank", GKit.M("plank"))
+	var top_col := CylinderShape3D.new(); top_col.radius = PLAZA_R + 0.6; top_col.height = 0.4
+	bt.collider(top_col, Transform3D(Basis(), c - Vector3(0, 0.2, 0)))
+	for k in 4:
+		var d := Vector3(0, 0, 1).rotated(Vector3.UP, k * PI * 0.5)
+		var top := c + d * (PLAZA_R + 0.3)
+		var bottom := top + d * 6.0
+		bottom.y = g.call(bottom.x, bottom.z)
+		GKit.stairs(bt, bottom, top - Vector3(0, 0.02, 0), 6.0)
+	GStyle.aetheryte(root, bt, c)
+	info["aetheryte"] = c
+	for k in 8:
+		var a := TAU * k / 8.0 + PI / 8.0
+		var p := c + Vector3(cos(a), 0, sin(a)) * (PLAZA_R - 1.6)
+		GKit.lamp_post(bt, root, p, -a + PI, k % 2 == 0)
+	for k in 4:
+		var a := TAU * k / 4.0 + PI * 0.25
+		var p := c + Vector3(cos(a), 0, sin(a)) * 13.0
+		var xf := Transform3D(Basis(Vector3.UP, -a + PI * 0.5), p)
+		GStyle.add(bt, GStyle.leaf_awning(), xf * Transform3D(Basis(Vector3.UP, PI), Vector3(0, 4.6, 1.6)), "awning", false)
+		for s in [-1.0, 1.0]:
+			GKit.beam(bt, xf, Vector3(s * 1.6, 0, 0), Vector3(s * 1.3, 4.6, 0), 0.22)
+			GKit.bx(bt, xf, Vector3(s * 1.0, 0.45, -1.2), Vector3(2.6, 0.12, 0.5), "plank")
+			GKit.bx(bt, xf, Vector3(s * 1.0, 0.22, -1.2), Vector3(2.4, 0.44, 0.3), "timber")
+		GStyle.planter(bt, c + Vector3(cos(a + 0.4), 0, sin(a + 0.4)) * 16.5, -a, k)
+	info["landmarks"].append({"name": "Aetheryte Plaza", "pos": c})
+	ZoneBuilder._sign(root, c + Vector3(0, 11.0, -PLAZA_R + 2.0), "Aetheryte Plaza", 28)
+
+
+## A named lodge facing `target`; returns its {door, inside, counter, floor}.
+static func _lodge(bt: Batcher, root: Node3D, p: Vector3, target: Vector3, w: float, d: float, g: Callable, occupied: Array,
+		info: Dictionary, label: String, o: Dictionary) -> Dictionary:
+	var gy := _footing(g, p, maxf(w, d))
+	var yaw := atan2(target.x - p.x, target.z - p.z)
+	var res := GStyle.lodge(bt, root, Vector3(p.x, gy, p.z), yaw, w, d, o)
+	occupied.append([Vector2(p.x, p.z), maxf(w, d) * 0.6 + 4.5])
+	var door: Vector3 = res["door"]
+	ZoneBuilder._sign(root, Vector3(door.x, gy + 3.6 * int(o.get("floors", 1)) + 4.0, door.z), label, 26)
+	info["landmarks"].append({"name": label, "pos": door})
+	return res
+
+
+## The Airship Landing on the eastern cliff shelf: a timber stair up the cliff face from beside
+## the Carline Canopy, a broad deck jutting over the gorge, mooring posts and a docked airship.
+static func _airship_landing(root: Node3D, bt: Batcher, info: Dictionary, g: Callable, occupied: Array) -> void:
+	var y := SHELF_Y
+	# Switchback stairs up the cliff.
+	var s0 := Vector3(70, g.call(70, 64), 64)
+	var l1 := Vector3(74, y * 0.5, 50)
+	var l2 := Vector3(80, y, 34)
+	GKit.stairs(bt, s0, l1 + Vector3(0, -0.05, 2.2), 3.4, "plank")
+	GKit.bx(bt, Transform3D(), l1, Vector3(4.6, 0.3, 4.6), "plank")
+	var lc := BoxShape3D.new(); lc.size = Vector3(4.6, 0.3, 4.6)
+	bt.collider(lc, Transform3D(Basis(), l1))
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			var pp := l1 + Vector3(sx * 2.1, 0, sz * 2.1)
+			GKit.beam(bt, Transform3D(), Vector3(pp.x, g.call(pp.x, pp.z) - 0.5, pp.z), pp, 0.35)
+	GKit.stairs(bt, l1 + Vector3(0, -0.05, -2.2), l2, 3.4, "plank")
+	# The landing deck over the gorge.
+	var deck := Vector3(108, y, 36)
+	GKit.bx(bt, Transform3D(), deck, Vector3(14, 0.4, 16), "plank")
+	var dc := BoxShape3D.new(); dc.size = Vector3(14, 0.4, 16)
+	bt.collider(dc, Transform3D(Basis(), deck))
+	for k in 6:
+		var pp := deck + Vector3(-6.0 + k * 2.4, 0, 0)
+		for sz in [-1.0, 1.0]:
+			GKit.beam(bt, Transform3D(), pp + Vector3(0, 0, sz * 7.6), Vector3(pp.x - 3.0, -8.0, pp.z + sz * 7.6), 0.4)
+	var edge := [deck + Vector3(-7, 0, -8), deck + Vector3(7, 0, -8), deck + Vector3(7, 0, 8), deck + Vector3(-7, 0, 8)]
+	GKit.railing(bt, [edge[0], edge[1]], 1.1)
+	GKit.railing(bt, [edge[1], deck + Vector3(7, 0, -3)], 1.1)
+	GKit.railing(bt, [deck + Vector3(7, 0, 3), edge[2]], 1.1)
+	GKit.railing(bt, [edge[2], edge[3]], 1.1)
+	# Invisible guard rail so nobody walks off the shelf into the gorge.
+	for seg in [[Vector3(113, y, 6), Vector3(113, y, 66)], [deck + Vector3(7.3, 0, -8), deck + Vector3(7.3, 0, 8)]]:
+		var a: Vector3 = seg[0]; var b2: Vector3 = seg[1]
+		var wall := BoxShape3D.new(); wall.size = Vector3(0.4, 4.0, a.distance_to(b2))
+		bt.collider(wall, Transform3D(Basis(), (a + b2) * 0.5 + Vector3(0, 2.0, 0)))
+	for sz in [-1.0, 1.0]:
+		var mp := deck + Vector3(6.4, 0, sz * 3.0)
+		bt.add(GKit._cyl(0.35, 1.6, 0.3, 10), Transform3D(Basis(), mp + Vector3(0, 0.8, 0)), "brass", GKit.M("brass"))
+		GKit.lamp_post(bt, root, deck + Vector3(-5.5, 0, sz * 7.0), 0.0, true)
+	GStyle.airship(bt, deck + Vector3(14.5, 1.2, 0), 0.0)
+	GStyle.turret(bt, SHELF + Vector3(-8, y, -14), 2.4, 6.0, "roof_r")
+	GKit.banner(bt, deck + Vector3(-6.8, 4.5, 0), PI * 0.5, 3.0, "cloth_g")
+	ZoneBuilder._sign(root, deck + Vector3(0, 6.0, 0), "Airship Landing", 28)
+	info["landmarks"].append({"name": "Airship Landing", "pos": deck})
+	info["npcs"].append({"role": "citizen", "pos": deck + Vector3(-3, 0, -4), "y": y + 0.2, "face": PI * 0.5, "name": "Airship Ticketer"})
+	occupied.append([Vector2(SHELF.x, SHELF.z), SHELF_R + 2.0])
+	occupied.append([Vector2(75, 49), 10.0])
+
+
+## The marketplace: rows of awning-covered stalls piled with goods around a lantern-lit square.
+static func _market(root: Node3D, bt: Batcher, info: Dictionary, g: Callable, occupied: Array) -> void:
+	var c := Vector3(MARKET.x, NEW_Y + 0.4, MARKET.z)
+	var cloths := ["cloth_y", "cloth_g", "cloth_r", "cloth_y", "cloth_g"]
+	var rng := RandomNumberGenerator.new(); rng.seed = 404
+	var k := 0
+	for ring in [[10.5, 9]]:
+		for i in int(ring[1]):
+			var a: float = TAU * (i + 0.5) / ring[1] + 0.2
+			if absf(wrapf(a - PI * 0.5, -PI, PI)) < 0.5 or absf(wrapf(a + PI * 0.5, -PI, PI)) < 0.45 or absf(wrapf(a, -PI, PI)) < 0.35: continue
+			var p := c + Vector3(cos(a), 0, sin(a)) * float(ring[0])
+			var yaw := atan2(c.x - p.x, c.z - p.z)
+			GKit.stall(bt, p, yaw, cloths[k % cloths.size()] if cloths[k % cloths.size()] != "cloth_r" else "cloth_y")
+			# Goods heaped on the counter and in crates before it.
+			var xf := Transform3D(Basis(Vector3.UP, yaw), p)
+			for j in 4:
+				GStyle.box(bt, xf, Vector3(-1.1 + j * 0.72, 1.2, 0.4), Vector3(0.5, 0.28, 0.4), ["goods_a", "goods_b", "goods_c", "goods_d"][(j + k) % 4])
+			GStyle.box(bt, xf, Vector3(1.9, 0.35, 1.0), Vector3(0.7, 0.7, 0.7), "plank_dark", true)
+			GStyle.box(bt, xf, Vector3(1.9, 0.76, 1.0), Vector3(0.6, 0.14, 0.6), ["goods_a", "goods_d"][k % 2])
+			if k % 2 == 0:
+				info["npcs"].append({"role": "market" if k == 0 else "citizen", "pos": xf * Vector3(0, 0, -0.6), "y": c.y, "yaw": yaw + PI, "name": "Merchant" if k == 0 else "Vendor"})
+			k += 1
+	GKit.lamp_post(bt, root, c, 0.0, true)
+	for i in 3:
+		var a := TAU * i / 3.0 + 0.5
+		GKit.crates(bt, c + Vector3(cos(a), 0, sin(a)) * 5.0, a)
+	ZoneBuilder._sign(root, c + Vector3(0, 6.5, 0), "Marketplace", 26)
+	info["landmarks"].append({"name": "Marketplace", "pos": c})
+	occupied.append([Vector2(c.x, c.z), MARKET_R + 1.0])
+
+
+## Mossy rock outcrops along the basin's cliffs and the ridge, breaking up the slopes.
+static func _cliff_rocks(root: Node3D, rng: RandomNumberGenerator, g: Callable) -> void:
+	var by_v := {}
+	for i in 220:
+		var a := rng.randf() * TAU
+		var r := rim_radius(cos(a), sin(a)) + rng.randf_range(-6.0, 4.0)
+		var p := Vector2(cos(a) * r, sin(a) * r)
+		if absf(p.x) > 128 or absf(p.y) > 128: continue
+		if p.y > 92.0 and absf(p.x - 12.0) < 12.0: continue
+		if p.x < -92.0 and absf(p.y + 66.0) < 12.0: continue
+		var v := i % 4
+		if not by_v.has(v): by_v[v] = []
+		var s := rng.randf_range(4.0, 9.0)
+		by_v[v].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.9, 1.6), s)), Vector3(p.x, g.call(p.x, p.y) - s * 0.3, p.y)))
+	for i in 70:
+		var x := rng.randf_range(-110, 110)
+		var z := ridge_z(x) + rng.randf_range(-11, 11)
+		var skip := false
+		for tx in TUNNELS:
+			if absf(x - tx) < TW + 6.0: skip = true
+		if skip: continue
+		var v := i % 4
+		if not by_v.has(v): by_v[v] = []
+		var s := rng.randf_range(2.5, 6.0)
+		by_v[v].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.7, 1.3), s)), Vector3(x, g.call(x, z) - s * 0.25, z)))
+	for i in 40:
+		var a := rng.randf() * TAU; var r := rng.randf_range(SHELF_R - 2.0, SHELF_R + 3.0)
+		var p := Vector2(SHELF.x + cos(a) * r, SHELF.z + sin(a) * r)
+		if p.x > 111.0 or (absf(p.x - 77) < 6 and p.y > 30 and p.y < 66): continue
+		var v := i % 4
+		if not by_v.has(v): by_v[v] = []
+		var s := rng.randf_range(3.0, 6.0)
+		by_v[v].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * 1.5, s)), Vector3(p.x, g.call(p.x, p.y) - s * 0.5, p.y)))
+	for v in by_v:
+		var rm := _rock(v)
+		var am := ArrayMesh.new()
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, rm.surface_get_arrays(0))
+		am.surface_set_material(0, GKit.M("rock"))
+		GKit.scatter(root, am, by_v[v], 400.0, true, 64.0)
+
+
+## A raised plank boardwalk on posts along points (Old Gridania's walkways).
+static func _boardwalk(bt: Batcher, pts: Array, g: Callable) -> void:
+	var lift := 0.8
+	var rail_l := []; var rail_r := []
+	for i in pts.size() - 1:
+		var a: Vector3 = pts[i]; var b: Vector3 = pts[i + 1]
+		a.y = g.call(a.x, a.z) + lift; b.y = g.call(b.x, b.z) + lift
+		var d := Vector3(b.x - a.x, 0, b.z - a.z)
+		var l := d.length()
+		var basis := Basis(Vector3.UP, atan2(d.x, d.z))
+		var mid := (a + b) * 0.5
+		var slope := Basis(Vector3.RIGHT, -atan2(b.y - a.y, l))
+		bt.add(GKit.boxm(Vector3(3.6, 0.22, l + 0.4)), Transform3D(basis * slope, mid), "plank", GKit.M("plank"))
+		var sh := BoxShape3D.new(); sh.size = Vector3(3.6, 0.3, l + 0.4)
+		bt.collider(sh, Transform3D(basis * slope, mid))
+		var side := Vector3(-d.z, 0, d.x).normalized() * 1.7
+		var n := maxi(1, int(l / 2.5))
+		for k in n + 1:
+			var q := a.lerp(b, float(k) / n)
+			for s in [-1.0, 1.0]:
+				GKit.beam(bt, Transform3D(), q + side * s - Vector3(0, lift + 0.6, 0), q + side * s, 0.24)
+		rail_l.append(a + side); rail_r.append(a - side)
+		if i == pts.size() - 2:
+			rail_l.append(b + side); rail_r.append(b - side)
+	GKit.railing(bt, rail_l, 1.0); GKit.railing(bt, rail_r, 1.0)
+
+
+## Flowers, flowering shrubs, fences and planters along the streets; lanterns at intervals.
+static func _dress_streets(root: Node3D, bt: Batcher, rng: RandomNumberGenerator, paths: Array, occupied: Array, g: Callable) -> void:
+	var beds := {}
+	var shrubs := {}
+	var lit := 0
+	for s in paths:
+		var pts: Array = s[0]
+		var hw: float = s[1]
+		for i in pts.size() - 1:
+			var a: Vector2 = pts[i]; var c: Vector2 = pts[i + 1]
+			var seg := a.distance_to(c)
+			var dir := (c - a) / seg
+			var side := dir.orthogonal()
+			var tt := 3.0
+			var k := 0
+			while tt < seg - 3.0:
+				var q := a + dir * tt
+				for sd in [-1.0, 1.0]:
+					var off := hw + rng.randf_range(0.8, 2.6)
+					var fp: Vector2 = q + side * sd * off
+					if _in_water(fp, 0.8) or _on_road(fp, 0.3) or _blocked(fp, occupied, 0.0): continue
+					var v := rng.randi() % 4
+					if rng.randf() < 0.22:
+						if not shrubs.has(v % 2): shrubs[v % 2] = []
+						shrubs[v % 2].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.8, 1.3)), Vector3(fp.x, g.call(fp.x, fp.y), fp.y)))
+					else:
+						if not beds.has(v): beds[v] = []
+						beds[v].append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.7, 1.2)), Vector3(fp.x, g.call(fp.x, fp.y), fp.y)))
+				if k % 6 == 3:
+					var lp := q + side * (hw + 0.9) * (1.0 if (k / 6) % 2 == 0 else -1.0)
+					if not _in_water(lp, 1.0) and not _blocked(lp, occupied, 0.0):
+						GKit.lamp_post(bt, root, Vector3(lp.x, g.call(lp.x, lp.y), lp.y), atan2(-side.y, side.x), lit % 4 == 0 and lit < 40)
+						lit += 1
+				tt += rng.randf_range(1.6, 2.6)
+				k += 1
+	for v in beds:
+		GKit.scatter(root, GStyle.flowers_mesh(v), beds[v], 80.0, false, 48.0)
+	for v in shrubs:
+		GKit.scatter(root, GStyle.flowering_shrub([0, 2][v]), shrubs[v], 110.0, true, 48.0)
+	# Fences along the stream banks where streets run beside the water.
+	for st in _streams:
+		var spts: Array = st["pts"]
+		for i in spts.size() - 1:
+			if i % 2 == 1: continue
+			var a: Vector2 = spts[i]; var c: Vector2 = spts[i + 1]
+			var side := (c - a).normalized().orthogonal() * (float(st["w"][i]) * 0.5 + 3.0)
+			var fa := a.lerp(c, 0.2) + side; var fc := a.lerp(c, 0.8) + side
+			if _on_road(fa, 0.5) or _on_road(fc, 0.5) or _blocked(fa, occupied, 0.0) or _blocked(fc, occupied, 0.0): continue
+			GStyle.fence(bt, [Vector3(fa.x, g.call(fa.x, fa.y), fa.y), Vector3(fc.x, g.call(fc.x, fc.y), fc.y)])
 
 
 static func _cell(p: Vector2) -> int:
@@ -421,23 +710,6 @@ static func _footing(g: Callable, p: Vector3, r: float) -> float:
 		for dz in [-0.5, 0.0, 0.5]:
 			y = maxf(y, g.call(p.x + dx * r, p.z + dz * r))
 	return y
-
-
-## A named building that faces `target`; returns where its door NPC stands.
-static func _hall(bt: Batcher, root: Node3D, p: Vector3, target: Vector3, w: float, d: float, floors: int, g: Callable, occupied: Array,
-		o: Dictionary, label: String, info: Dictionary) -> Vector3:
-	var gy := _footing(g, p, maxf(w, d))
-	var yaw := atan2(target.x - p.x, target.z - p.z)
-	var door := GKit.house(bt, root, Vector3(p.x, gy, p.z), yaw, w, d, floors, o)
-	if o.get("tower", false):
-		var tp := Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, gy, p.z)) * Vector3(w * 0.5 - 0.5, 0, -d * 0.5 + 0.5)
-		GKit.tower(bt, tp, 3.2, 3.1 * floors + 4.5, {"roof": o.get("roof", "roof_g")})
-	occupied.append([Vector2(p.x, p.z), maxf(w, d) * 0.6 + 2.5])
-	ZoneBuilder._sign(root, Vector3(door.x, gy + 3.1 * floors + 3.0, door.z), label, 26)
-	info["landmarks"].append({"name": label, "pos": door})
-	GKit.banner(bt, Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, gy, p.z)) * Vector3(-w * 0.3, 0.7 + 3.0, d * 0.5 + 0.35), yaw, 2.4, "cloth_g")
-	GKit.banner(bt, Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, gy, p.z)) * Vector3(w * 0.3, 0.7 + 3.0, d * 0.5 + 0.35), yaw, 2.4, "cloth_g")
-	return Vector3(door.x, 0, door.z)
 
 
 # ----------------------------------------------------------------------------- water features
@@ -654,40 +926,6 @@ static func _tunnel(root: Node3D, bt: Batcher, tx: float) -> void:
 
 
 # ----------------------------------------------------------------------------- districts and landmarks
-## The Aetheryte Plaza: a raised stone terrace with steps on four sides, a ring of lanterns and
-## gold canopies, and the aetheryte at its heart.
-static func _plaza(root: Node3D, bt: Batcher, info: Dictionary, g: Callable) -> void:
-	var c := PLAZA + Vector3(0, NEW_Y + 1.2, 0)
-	bt.add(GKit._cyl(PLAZA_R + 0.4, 4.0, PLAZA_R + 0.6, 48), Transform3D(Basis(), c - Vector3(0, 2.05, 0)), "stone", GKit.M("stone"))
-	bt.add(GKit._cyl(PLAZA_R + 0.7, 0.25, PLAZA_R + 0.7, 48), Transform3D(Basis(), c + Vector3(0, 0.0, 0)), "stone_dark", GKit.M("stone_dark"))
-	bt.add(GKit._cyl(9.0, 0.12, 9.0, 32), Transform3D(Basis(), c + Vector3(0, 0.07, 0)), "plank", GKit.M("plank"))
-	for k in 4:
-		var d := Vector3(0, 0, 1).rotated(Vector3.UP, k * PI * 0.5 + (PI * 0.25 if k % 2 == 1 else 0.0) * 0.0)
-		var top := c + d * (PLAZA_R + 0.2)
-		var bottom := top + d * 4.0
-		bottom.y = g.call(bottom.x, bottom.z)
-		GKit.stairs(bt, bottom, top + Vector3(0, -0.02, 0), 6.0)
-	ZoneBuilder._aetheryte(root, bt, c)
-	info["aetheryte"] = c
-	for k in 8:
-		var a := TAU * k / 8.0 + PI / 8.0
-		var p := c + Vector3(cos(a), 0, sin(a)) * (PLAZA_R - 1.6)
-		GKit.lamp_post(bt, root, p, -a + PI, k % 2 == 0)
-	for k in 4:
-		var a := TAU * k / 4.0 + PI * 0.25
-		var p := c + Vector3(cos(a), 0, sin(a)) * 12.0
-		var xf := Transform3D(Basis(Vector3.UP, -a), p)
-		for s in [-1.0, 1.0]:
-			GKit.beam(bt, xf, Vector3(s * 2.6, 0, -1.2), Vector3(s * 2.6, 4.2, -1.2), 0.24)
-			GKit.beam(bt, xf, Vector3(s * 2.6, 0, 1.2), Vector3(s * 2.6, 3.6, 1.2), 0.24)
-		bt.add(GKit.boxm(Vector3(6.0, 0.06, 3.0)), xf * Transform3D(Basis(Vector3.RIGHT, deg_to_rad(-11)), Vector3(0, 3.95, 0)), "cloth_y", GKit.M("cloth_y"), false)
-		for s in [-1.0, 1.0]:
-			GKit.bx(bt, xf, Vector3(0, 0.45, s * 1.0), Vector3(3.4, 0.12, 0.5), "plank")
-			GKit.bx(bt, xf, Vector3(0, 0.22, s * 1.0), Vector3(3.2, 0.44, 0.3), "timber")
-	info["landmarks"].append({"name": "Aetheryte Plaza", "pos": c})
-	ZoneBuilder._sign(root, c + Vector3(0, 9.0, -PLAZA_R + 2.0), "Aetheryte Plaza", 28)
-
-
 static func _old_square(root: Node3D, bt: Batcher, trees: Dictionary, g: Callable) -> void:
 	var c := OLD_SQ + Vector3(0, OLD_Y, 0)
 	bt.add(GKit._cyl(13.5, 0.14, 13.5, 40), Transform3D(Basis(), c + Vector3(0, 0.02, 0)), "stone_dark", GKit.M("stone_dark"))

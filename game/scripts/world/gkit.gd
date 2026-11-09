@@ -36,7 +36,7 @@ static func M(name: String) -> Material:
 		"roof_t": return surf(3, "#4a5a40", "#3a4632", 0.8, 0.6, 0.85)
 		"bark": return surf(4, "#5e4a38", "#3a2c22", 1.0, 0.55, 0.95)
 		"bark_pale": return surf(4, "#7a6c5a", "#54483c", 1.0, 0.45, 0.95)
-		"rock": return surf(5, "#7a7462", "#5a564b", 1.0, 0.7, 0.95)
+		"rock": return surf(5, "#5e5a4c", "#44423a", 1.0, 0.8, 0.95)
 		"plank": return surf(6, "#8a6840", "#6a4c30", 1.0, 0.1, 0.8)
 		"plank_dark": return surf(6, "#5e4630", "#4a3624", 1.0, 0.25, 0.85)
 		"cloth_g": return Props.pbr("#4f7a3a", 0.9)
@@ -437,6 +437,13 @@ static func bridge(bt: Batcher, a: Vector3, b: Vector3, width := 4.0, arch := 1.
 		if i == segs - 1:
 			left.append(p1 + side * (width * 0.5 - 0.1)); right.append(p1 - side * (width * 0.5 - 0.1))
 	railing(bt, left, 1.05); railing(bt, right, 1.05)
+	# Ring medallions set between the rails.
+	for rail in [left, right]:
+		for i in range(1, rail.size() - 1, 2):
+			var q: Vector3 = rail[i]
+			var face := Basis(Quaternion(Vector3.UP, side.normalized()))
+			bt.add(_cyl(0.36, 0.08, 0.36, 16), Transform3D(face, q + Vector3(0, 0.62, 0)), "brass", M("brass"))
+			bt.add(_cyl(0.24, 0.1, 0.24, 12), Transform3D(face, q + Vector3(0, 0.62, 0)), "timber", M("timber"))
 	# Curved ribs under the deck.
 	for s in [-1.0, 1.0]:
 		var prev: Vector3 = a + side * s * (width * 0.5 - 0.3) - Vector3(0, 0.6, 0)

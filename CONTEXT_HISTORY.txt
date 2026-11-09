@@ -509,3 +509,50 @@ Layout:
 Tests: all three tunnels walked end to end with real movement; every service NPC present and
 standing in the open; arrivals from both neighbouring zones land on clear ground; story talk
 steps, all missions and all 33 cutscenes still pass.
+
+================================================================================
+12. ROUND 7: GRIDANIA REBUILT AS ONE CONTINUOUS CITY
+================================================================================
+User request: recreate Gridania from a provided 16-minute video tour (shared by Google Drive), make
+the three New/Old Gridania orb crossings real walk-through tunnels with no instance split, keep it
+lore-accurate, and raise visual quality well above the earlier "cheap" look.
+
+Agreement reached during the round: the city is not a copy of the game's map or of specific
+buildings. The video is used as a reference for design language and the kinds of decoration found
+in the city (and for the rough arrangement of landmarks); streets, terrain and buildings are this
+game's own design.
+
+First pass (checkpoint) feedback from the user: the city read as a square, the ground was still
+flat, landmarks were poorly arranged, the aetheryte was not visible, there was no airship landing
+on a cliff, houses looked like generic medieval timber-framing, buildings had no interiors, and
+flowers, fences, aethernet shards and a marketplace were missing; the video had not been used as a
+style reference. All of these were addressed in the second pass:
+- Terrain: an irregular, lobed, cliff-ringed basin (1.25 m heightmap) with passes for the Blue
+  Badger and White Wolf gates; a wooded ridge between New Gridania (lower, south) and Old Gridania
+  (higher, north) cut by three stone-vaulted tunnels with portals, wing walls and lanterns;
+  raised terraces (Aetheryte Plaza, the Lancers' Guild, the great tree above the Lotus Stand);
+  an eastern cliff shelf 18 m up with a gorge beyond it; winding swimmable streams, pools,
+  Apkallu Falls and a northern spring fall; mossy rock outcrops along cliffs and the ridge.
+- Placement: Aetheryte Plaza at the heart of New Gridania; the Carline Canopy at the foot of the
+  eastern cliff with switchback stairs up to the Airship Landing (deck over the gorge, docked
+  airship, ticketer); the Adders' Nest nearby; the marketplace by the stream; the Knot across the
+  water; the Archers' Guild and Acorn Orchard to the west; Old Gridania's square with the
+  Leatherworkers' Guild on its boardwalk, the Lancers' Guild terrace, Mih Khetto's Amphitheatre,
+  the Lotus Stand over its pool, Stillglade Fane on its island and the Botanists' Guild gardens.
+- Architecture (GStyle): dark plank-walled lodges on stone plinths with raised front decks and
+  stairs, arched double doors with iron straps, tall arched windows, bell-curved roofs in
+  terracotta, red or moss green, round turrets and cottages with domed roofs, gold leaf-shaped
+  awnings and flower barrels at the doors.
+- Interiors: the guild hall, the Knot, the Leatherworkers', Lancers', Archers', Botanists' guilds
+  and the Adders' Nest are walk-in: open doorways, counters, shelves of goods, tables and stools,
+  rugs, stained glass, banners, a gallery reached by stairs, hanging lamps and warm lights.
+  Service NPCs (guildmaster, levemete, recruiter, innkeep, smith, merchant, trainer) stand inside.
+- The Aetheryte: a great crystal within curved brass arms on a stepped dais. Aethernet shards at
+  eleven points work as in-city fast travel.
+- Dressing: a marketplace of stalls heaped with goods and vendors, flower beds, flowering shrubs,
+  planters, fences along banks and gardens, bridges with ring medallions in the railings, lantern
+  posts, and the generated forest (buttress-rooted giants, oaks, saplings, bushes, ferns).
+- Tech: shaders/surface.gdshader (procedural stone, timber, plaster, shingle, bark, rock, planks,
+  moss), leafcard.gdshader (leaves, fern fronds, blossoms), waterfall and light-shaft shaders,
+  cobbled streets in the terrain shader, "stream" water kind for swimming, NPC floor heights for
+  interiors, and rasterised lookup grids so the city builds in under a second.

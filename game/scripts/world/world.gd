@@ -70,8 +70,11 @@ func _ready() -> void:
 	for n in info["npcs"]:
 		var npc := NPC.new()
 		add_child(npc)
-		npc.global_position = Vector3(n["pos"].x, ground_height(n["pos"].x, n["pos"].z), n["pos"].z)
-		if n["role"] == "citizen":
+		# Indoor and deck NPCs carry their floor height; everyone else stands on the ground.
+		npc.global_position = Vector3(n["pos"].x, float(n.get("y", ground_height(n["pos"].x, n["pos"].z))), n["pos"].z)
+		if n.has("yaw"):
+			npc.rotation.y = float(n["yaw"]) + PI
+		elif n["role"] == "citizen":
 			npc.rotation.y = n.get("face", 0.0)
 		else:
 			# Service NPCs stand facing the plaza / zone centre, where players approach from.
@@ -80,6 +83,8 @@ func _ready() -> void:
 		npc.setup(n, self)
 		interactables.append({"node": npc, "kind": "npc"})
 	interactables.append({"pos": info["aetheryte"], "kind": "aetheryte", "prompt": "Aetheryte"})
+	for s in info.get("shards", []):
+		interactables.append({"pos": s["pos"], "kind": "shard", "prompt": "Aethernet Shard: " + str(s["name"]), "name": s["name"]})
 	# party
 	if zd["type"] == "field":
 		var idx := 0
@@ -408,6 +413,9 @@ func _interact(it: Dictionary) -> void:
 				fx.nova(info["aetheryte"], 5.0, Color("#8fe0ff"))
 				Sfx.play("levelup", -6.0)
 			services.open_teleport()
+		"shard":
+			Sfx.play("ui_ok", -6.0)
+			services.open_aethernet(it["name"])
 		"carve":
 			var m: Monster = it["node"]
 			player._set_state("gather")
@@ -436,6 +444,20 @@ func teleport(zone: String) -> void:
 	hud.fade_out(0.6)
 	await get_tree().create_timer(0.65).timeout
 	Game.goto_zone(zone, Vector3.ZERO, {"at_aetheryte": true})
+
+
+## Move to another aethernet shard in the same city.
+func aethernet_to(s: Dictionary) -> void:
+	fx.nova(player.global_position, 2.5, Color("#8fe0ff"))
+	hud.fade_out(0.4)
+	await get_tree().create_timer(0.45).timeout
+	var p: Vector3 = s["pos"] + (s.get("out", Vector3(0, 0, 2.5)) as Vector3)
+	p.y = ground_height(p.x, p.z) + 0.3
+	if s.has("y"): p.y = float(s["y"]) + 0.3
+	player.global_position = p
+	player.velocity = Vector3.ZERO
+	fx.nova(player.global_position, 2.5, Color("#8fe0ff"))
+	if hud.has_method("fade_in"): hud.fade_in(0.4)
 
 
 func ferry(zone: String) -> void:

@@ -139,7 +139,7 @@ func _stage_at(npc: NPC) -> void:
 	fwd = fwd.normalized()
 	var p: Player = world.player
 	var pos := npc.global_position + fwd * 2.0
-	pos.y = world.ground_height(pos.x, pos.z) + 0.05
+	pos.y = maxf(world.ground_height(pos.x, pos.z), npc.global_position.y) + 0.05
 	p.global_position = pos
 	p.velocity = Vector3.ZERO
 	p.rotation.y = atan2(fwd.x, fwd.z)
@@ -393,6 +393,16 @@ func _ferry() -> void:
 	_show("Ferry", "%s  -  120 gil" % f["name"])
 	_add("Board (%s)" % Data.zones[f["to"]]["name"], func():
 		Game.add_gil(-120); close(); world.ferry(f["to"]), int(Game.state["gil"]) >= 120)
+	_finish_list()
+
+
+## City aethernet: travel between the shards of the same city for free.
+func open_aethernet(here: String) -> void:
+	_show("Aethernet", "Travel to another aethernet shard in the city.")
+	for s in world.info.get("shards", []):
+		if s["name"] == here: continue
+		var dest: Dictionary = s
+		_add(dest["name"], func(): close(); world.aethernet_to(dest))
 	_finish_list()
 
 
