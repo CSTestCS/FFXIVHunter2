@@ -288,7 +288,7 @@ static func terrain_material(b: Dictionary) -> ShaderMaterial:
 	for k in ["grass_a", "grass_b", "dirt", "rock", "top"]:
 		m.set_shader_parameter(k, Color(b[k]))
 	m.set_shader_parameter("top_height", b["top_h"])
-	m.set_shader_parameter("shore_height", 1.2)
+	m.set_shader_parameter("shore_height", b.get("shore_h", 1.2))
 	m.set_shader_parameter("noise_tex", Props.noise())
 	return m
 

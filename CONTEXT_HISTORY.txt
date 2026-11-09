@@ -467,3 +467,45 @@ Technical notes:
   assets/fonts (Barlow Semi Condensed and Cinzel, both SIL Open Font License, licences included).
 - Unused colour lists (LIP_COLORS, FEATURE_COLORS) were removed; palettes are generated.
 - Lore text for races, clans, deities, jobs and cities was written for this game.
+
+================================================================================
+12. ROUND 7: GRIDANIA AS ONE CITY WITH REAL TUNNELS
+================================================================================
+User request: a Google Drive video tour of Gridania (16 minutes, 1080p60), "recreate it as
+accurately as possible. Disregard UI elements. There are three paths between New Gridania and
+Old Gridania that are represented by lines of glowing blue orbs which when touched move the player
+to the other instance, but for this game I want those tunnels to be real tunnels that directly
+lead to the other part of the city. The two sides of the city should not be separate instances,
+and the orb lines should not be there."
+
+Approach:
+- The video was downloaded, sampled every 3 seconds with ffmpeg, studied for the city's feel and
+  landmarks, and then deleted. Gridania was rebuilt as an original stylised layout in the game's
+  own procedural style: it keeps the real district and landmark names and the New/Old structure,
+  but the level geometry is not traced from the footage (that layout is Square Enix's work).
+- New file scripts/world/gridania_builder.gd (GridaniaBuilder). CityBuilder hands Gridania to it;
+  the old Gridania-only branches in CityBuilder were removed.
+
+Layout:
+- A forested rock ridge (moss on top, trees on the crest, boulders and rock buttresses on both
+  faces) runs east to west and divides the city. Three tunnels (west, centre, east) pass straight
+  through it: 6.5 m wide, timber frames every 4 m, plank ceilings, lanterns and a warm light in
+  each. Signs at each mouth point to the other half. Walking through takes you from one district
+  to the other in the same zone; the area title ("New Gridania" / "Old Gridania") appears when you
+  cross (World.district_at and info["districts"]).
+- New Gridania (south): Aetheryte Plaza on a raised timber deck ringed by golden canopies; the
+  Carline Canopy (Adventurers' Guild: guildmaster, levemete, party recruiter) and the Roost
+  (inn); Carpenters' Guild (The Knot, smithing); the Adders' Nest; the Archers' Guild (Quiver's
+  Hold); Acorn Orchard; a river with three timber bridges; Apkallu Falls at its west end; the
+  Blue Badger Gate to the Central Shroud.
+- Old Gridania (north): Stillglade Fane (Conjurers' Guild, an open round pavilion before giant
+  trees); the Lancers' Guild (job trainer); the Leatherworkers' Guild (market); the Botanists'
+  Guild; Mih Khetto's Amphitheatre; the Lotus Stand (a swimmable pond with lily pads); the White
+  Wolf Gate to the North Shroud (moved to the Old Gridania side).
+- The zone's display name is now "Gridania" (the aetheryte is still "New Gridania").
+- Terrain fix: zones can set their own shoreline height (biome "shore_h"); before, the whole flat
+  city floor was coloured as sand.
+
+Tests: all three tunnels walked end to end with real movement; every service NPC present and
+standing in the open; arrivals from both neighbouring zones land on clear ground; story talk
+steps, all missions and all 33 cutscenes still pass.

@@ -113,7 +113,8 @@ func _ready() -> void:
 		_spawn_ambient()
 	_spawn_echo()
 	Sfx.music(info["biome"].get("music", "forest"))
-	hud.zone_banner(zd["name"], zd["region"])
+	_district = district_at(player.global_position)
+	hud.zone_banner(_district if _district != "" else zd["name"], zd["region"])
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	var cs: String = ps.get("cutscene", "")
 	Game.pending_spawn = {}
@@ -258,7 +259,16 @@ func water_level(x: float, z: float) -> float:
 ## Camera position near `desired` with an unobstructed view of `target` (a face).
 ## Walls, terrain and the player's body count as blockers; the speaker's own body can be excluded.
 ## Tries the requested angle first, then swings around the target, then pulls in closer.
+## Named district at a position, for cities split into parts (Gridania's New and Old halves).
+func district_at(p: Vector3) -> String:
+	for d in info.get("districts", []):
+		if p.z < float(d[1]): return d[0]
+	return ""
+
+
 ## Characters that may block a conversation shot (the player plus anyone on stage in a scene).
+var _district := ""
+var _district_t := 0.0
 var shot_blockers: Array = []
 
 
@@ -334,6 +344,13 @@ func _physics_process(delta: float) -> void:
 	_respawn_q = _respawn_q.filter(func(r): return r["t"] > 0.0)
 	for r in due: _spawn_monster(r["id"], _random_spawn(), r["lvl"])
 	# zone lines
+	_district_t -= delta
+	if _district_t <= 0.0 and player:
+		_district_t = 0.5
+		var dn := district_at(player.global_position)
+		if dn != _district:
+			_district = dn
+			hud.zone_banner(dn, Data.zones[zone_id]["region"])
 	_exit_cool -= delta
 	if _exit_cool <= 0.0 and player and player.state != "cutscene" and not cutscene.active:
 		for e in info["exits"]:

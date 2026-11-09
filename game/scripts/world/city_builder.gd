@@ -1,8 +1,9 @@
 class_name CityBuilder
-## Lays out the four starting cities from architectural kits. Each city keeps its identity
-## (Limsa's white stone over the sea, Gridania's timber and waterways beneath giant trees,
-## Ul'dah's sandstone domes and walls, Ishgard's snow-dusted gothic spires) while sharing a
-## readable layout: aetheryte plaza, adventurers' guild, kitchen, smithy, market, job trainer.
+## Lays out the starting cities from architectural kits. Each city keeps its identity
+## (Limsa's white stone over the sea, Ul'dah's sandstone domes and walls, Ishgard's snow-dusted
+## gothic spires) while sharing a readable layout: aetheryte plaza, adventurers' guild, kitchen,
+## smithy, market, job trainer. Gridania has its own layout (GridaniaBuilder) and borrows the
+## timber building kit from here.
 
 const STYLES := {
 	"limsa": {"biome": "coast", "ground": "#d8d2c2", "wall": "#ece6d8", "trim": "#2f6f8a", "roof": "#3a7c94", "wood": "#7a5a3a", "wall_h": 4.0, "ground_y": 2.0},
@@ -14,7 +15,6 @@ const WALL := 92.0
 ## Familiar city landmarks used for the service buildings.
 const NAMES := {
 	"limsa": {"inn": "The Bismarck", "smith": "Blacksmiths' Guild", "market": "Hawkers' Alley", "trainer": "Marauders' Guild"},
-	"gridania": {"inn": "The Roost", "smith": "Carpenters' Guild", "market": "Leatherworkers' Guild", "trainer": "Lancers' Guild"},
 	"uldah": {"inn": "The Hourglass", "smith": "Goldsmiths' Guild", "market": "Sapphire Avenue Exchange", "trainer": "Gladiators' Guild"},
 	"ishgard": {"inn": "Cloud Nine", "smith": "Skysteel Manufactory", "market": "The Jeweled Crozier", "trainer": "Fortemps Manor"},
 }
@@ -22,6 +22,7 @@ const NAMES := {
 
 static func build(zone_id: String) -> Dictionary:
 	var zd: Dictionary = Data.zones[zone_id]
+	if zd["style"] == "gridania": return GridaniaBuilder.build(zone_id)
 	var st: Dictionary = STYLES[zd["style"]]
 	var b: Dictionary = ZoneBuilder.BIOMES[st["biome"]].duplicate()
 	var n := ZoneBuilder.N
@@ -41,10 +42,6 @@ static func build(zone_id: String) -> Dictionary:
 				# Limsa stands on a stone shelf above the sea: open water to the south and west.
 				if (z > WALL - 4.0 or x < -WALL + 4.0) and edge > WALL - 4.0: y = -8.0
 				if edge > WALL + 6.0: y = -8.0 if (z > 0 or x < 0) else gy + 14.0
-			elif style == "gridania":
-				var rz := absf(z - 42.0)
-				if rz < 7.0: y = lerpf(-3.2, gy, smoothstep(4.0, 7.0, rz))
-				if edge > WALL + 4.0: y = gy + 10.0
 			else:
 				if edge > WALL + 4.0: y = gy + 16.0
 			h[iz * n + ix] = y
@@ -57,7 +54,6 @@ static func build(zone_id: String) -> Dictionary:
 	var info := {"root": root, "heights": h, "n": n, "size": size, "exits": exits, "landmarks": [], "aetheryte": Vector3(0, gy, 0),
 		"waters": [], "npcs": [], "biome": b, "spawns": [], "nodes": [], "camp": Vector3(0, gy, 30), "interact": [], "city": true}
 	var gb := Dictionary(b); gb["grass_a"] = st["ground"]; gb["grass_b"] = st["ground"]; gb["dirt"] = st["ground"]
-	if style == "gridania": gb["grass_a"] = "#2c4a1e"; gb["grass_b"] = "#456a26"; gb["dirt"] = "#6a5638"
 	if style == "ishgard": gb["grass_a"] = "#e6eaf0"; gb["grass_b"] = "#d8dee6"; gb["dirt"] = "#8a8c94"
 	var mask := PackedFloat32Array(); mask.resize(n * n)
 	for iz in n:
@@ -128,7 +124,6 @@ static func build(zone_id: String) -> Dictionary:
 		for e in exits:
 			var ep: Vector3 = e["pos"]
 			if ZoneBuilder._seg_dist(Vector2(p.x, p.z), Vector2.ZERO, Vector2(ep.x, ep.z)) < 13.0: blocked = true
-		if style == "gridania" and absf(p.z - 42.0) < 12.0: blocked = true
 		if blocked: continue
 		var sz := Vector3(rng.randf_range(8, 14), 0, rng.randf_range(8, 13))
 		_building(bt, root, p, sz, style, st, atan2(-p.x, -p.z) + PI, "", false, rng.randf_range(0.8, 1.6))
@@ -174,21 +169,6 @@ static func build(zone_id: String) -> Dictionary:
 			# stairs into the sea so swimmers can climb back up
 			for k in 6:
 				bt.box(Vector3(-30, gy - 1.0 - k * 0.9, WALL + 1.5 + k * 1.4), Vector3(8, 0.9, 1.4), "pave2", ground_m)
-		"gridania":
-			info["waters"].append({"kind": "river", "level": -0.6, "z": 42.0, "half": 6.5})
-			ZoneBuilder._water_plane(root, Vector3(0, -0.6, 42), Vector2(size, 14), b, false)
-			for bx in [-50.0, 0.0, 50.0]:
-				bt.box(Vector3(bx, gy + 0.3, 42), Vector3(6, 0.4, 16), "wood", wood_m)
-				bt.box(Vector3(bx + 2.8, gy + 1.0, 42), Vector3(0.2, 1.2, 16), "wood", wood_m, false)
-				bt.box(Vector3(bx - 2.8, gy + 1.0, 42), Vector3(0.2, 1.2, 16), "wood", wood_m, false)
-			for i in 14:
-				var a := rng.randf() * TAU; var r := rng.randf_range(55, 88)
-				trees.append(["giant", Vector3(cos(a) * r, gy, sin(a) * r)])
-			for i in 30:
-				var a := rng.randf() * TAU; var r := rng.randf_range(24, 88)
-				trees.append(["broadleaf" if i % 3 else "bush", Vector3(cos(a) * r, gy, sin(a) * r)])
-			ZoneBuilder._sign(root, Vector3(-40, gy + 6, -60), "Stillglade Fane", 24)
-			bt.box(Vector3(-40, gy + 2.5, -64), Vector3(16, 5, 10), "wood", wood_m)
 		"uldah":
 			bt.cyl(Vector3(-50, gy + 6, -55), 18.0, 12.0, "wall", wall_m, true, 18.0, 28)
 			bt.cyl(Vector3(-50, gy + 12.5, -55), 18.6, 1.0, "trim", trim_m, false, 18.6, 28)

@@ -8,7 +8,7 @@ const SIZE := 260.0
 static func all() -> Dictionary:
 	return {
 		# ======================= CITIES
-		"gridania": {"name": "New Gridania", "region": "The Black Shroud", "type": "city", "style": "gridania", "aetheryte": "New Gridania",
+		"gridania": {"name": "Gridania", "region": "The Black Shroud", "type": "city", "style": "gridania", "aetheryte": "New Gridania",
 			"guild": "The Carline Canopy", "guildmaster": "miounne", "exits": [{"to": "central_shroud", "dir": "S"}, {"to": "north_shroud", "dir": "W"}],
 			"water": "river", "music": "forest"},
 		"limsa": {"name": "Limsa Lominsa", "region": "La Noscea", "type": "city", "style": "limsa", "aetheryte": "Limsa Lominsa",
